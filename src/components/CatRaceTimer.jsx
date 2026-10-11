@@ -1179,13 +1179,13 @@ export default function CatRaceTimer() {
       {/* 1. TOP STADIUM GRASS BORDER WITH CONTROLS & DIGITAL COUNTDOWN CLOCK   */}
       {/* ==================================================================== */}
       <div className="sticky top-0 bg-[#3EA824] px-3 sm:px-6 py-2 sm:py-2.5 z-30 flex items-center justify-between shadow-md border-b-4 border-[#267316]">
-        {/* Stadium turf border trim */}
-        <div className="absolute -bottom-3 left-0 right-0 h-4 flex overflow-hidden pointer-events-none">
+        {/* Stadium turf border trim (neatly contained at base of grass roof) */}
+        <div className="absolute bottom-0 left-0 right-0 h-2 flex overflow-hidden pointer-events-none opacity-40">
           {Array.from({ length: 40 }).map((_, i) => (
             <div
               key={i}
-              className="w-10 h-6 bg-[#328D1C] rounded-full -mb-3 flex-shrink-0"
-              style={{ marginLeft: '-10px' }}
+              className="w-8 h-4 bg-[#267316] rounded-t-full flex-shrink-0"
+              style={{ marginLeft: '-6px' }}
             />
           ))}
         </div>
@@ -1335,45 +1335,70 @@ export default function CatRaceTimer() {
         </div>
       </div>
 
-      {/* TOP LIVE LEADERBOARD TICKER */}
-      <div className="bg-[#1F2421] text-white text-[11px] font-bold px-4 py-1 flex items-center justify-between border-b border-white/10 z-20">
-        <div className="flex items-center gap-2 overflow-x-auto">
-          <span className="text-yellow-400 font-black uppercase text-[10px] tracking-wider flex items-center gap-1 flex-shrink-0">
-            🏆 TOP DẪN ĐẦU:
-          </span>
-          {liveLeaders.map((r, i) => (
-            <span key={r.id} className="whitespace-nowrap flex items-center gap-1 opacity-90 text-[11px]">
-              <span className="text-xs">{i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}</span>
-              <span className={i === 0 ? 'text-yellow-300 font-black' : ''}>{r.name}</span>
-              {i < liveLeaders.length - 1 && <span className="text-stone-500 mx-1">•</span>}
-            </span>
-          ))}
-        </div>
-        <span className="text-stone-400 text-[10px] hidden md:inline font-mono">
-          Đường Chạy Điền Kinh V English House
-        </span>
-      </div>
+      {/* ==================================================================== */}
+      {/* TV SPORTS BROADCAST & LIVE COMMENTARY CONSOLE (KHUNG BÌNH LUẬN)      */}
+      {/* ==================================================================== */}
+      <div className="bg-[#12161A] border-b-2 border-[#FFC600]/40 z-20 shadow-md">
+        {/* ROW 1: THE DEDICATED LIVE COMMENTARY BOX (KHUNG BÌNH LUẬN TRỰC TIẾP) */}
+        <div className="px-3 sm:px-5 py-2.5 bg-gradient-to-r from-[#2A0B0B] via-[#161B20] to-[#261A08] flex items-center justify-between gap-3 border-b border-white/10">
+          <div className="flex items-center gap-2.5 overflow-hidden flex-1 min-w-0">
+            {/* Live Pulsing Microphone Badge */}
+            <div className="flex items-center gap-1.5 bg-red-600 text-white text-[11px] font-black uppercase px-2.5 py-1 rounded-full shadow-md flex-shrink-0 animate-pulse tracking-wide">
+              <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+              <span>{commentary.icon || '🎙️'} BÌNH LUẬN TRỰC TIẾP</span>
+            </div>
 
-      {/* HILARIOUS LIVE SLAPSTICK COMMENTARY BAR */}
-      <div className="bg-gradient-to-r from-red-950 via-[#1F2421] to-amber-950 text-white text-[11px] font-bold px-3 sm:px-4 py-1.5 flex items-center justify-between border-b border-yellow-500/30 z-20 shadow-inner">
-        <div className="flex items-center gap-2 overflow-hidden w-full">
-          <span className="bg-red-600 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full flex items-center gap-1 flex-shrink-0 animate-pulse shadow">
-            {commentary.icon} BÌNH LUẬN TRỰC TIẾP
-          </span>
-          <span className="text-yellow-200 font-bold text-xs truncate animate-fade-in" key={commentary.time}>
-            {commentary.text}
-          </span>
+            {/* Commentary text - large, vibrant, readable across the room */}
+            <div
+              key={commentary.time}
+              className="text-yellow-300 font-black text-xs sm:text-sm md:text-base truncate animate-fade-in flex items-center gap-2 drop-shadow-sm"
+            >
+              <span>{commentary.text}</span>
+            </div>
+          </div>
+
+          {/* Slapstick Troll Mode Status Badge */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {trollModeEnabled ? (
+              <span className="text-[11px] text-amber-300 font-black flex items-center gap-1 bg-amber-500/20 px-3 py-1 rounded-full border border-amber-400/40 shadow">
+                <span>⚡</span>
+                <span className="hidden sm:inline">CHẾ ĐỘ</span>
+                <span>ĐUA ĐỂU: BẬT</span>
+              </span>
+            ) : (
+              <span className="text-[11px] text-stone-400 font-bold hidden sm:inline bg-white/10 px-2.5 py-1 rounded-full">
+                Đua Chuẩn
+              </span>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
-          {trollModeEnabled ? (
-            <span className="text-[10px] text-amber-300 font-black hidden sm:flex items-center gap-1 bg-black/50 px-2 py-0.5 rounded-full border border-yellow-400/30 shadow">
-              ⚡ ĐUA ĐỂU: BẬT
+
+        {/* ROW 2: LIVE SPEED LEADERBOARD TICKER */}
+        <div className="px-3 sm:px-5 py-1.5 bg-[#0C1014] text-white text-xs flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 overflow-x-auto py-0.5 scrollbar-none">
+            <span className="text-amber-400 font-black uppercase text-[11px] tracking-wider flex items-center gap-1 flex-shrink-0">
+              🏆 TOP DẪN ĐẦU:
             </span>
-          ) : (
-            <span className="text-[10px] text-stone-400 font-bold hidden sm:inline bg-black/30 px-2 py-0.5 rounded-full">
-              Đua chuẩn
-            </span>
-          )}
+            {liveLeaders.map((r, i) => (
+              <span
+                key={r.id}
+                className={`whitespace-nowrap flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-bold transition ${
+                  i === 0
+                    ? 'bg-yellow-400/20 text-yellow-300 border border-yellow-400/40 font-black'
+                    : i === 1
+                    ? 'bg-stone-300/15 text-stone-200 border border-stone-400/30'
+                    : 'bg-amber-700/20 text-amber-300 border border-amber-700/30'
+                }`}
+              >
+                <span>{i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}</span>
+                <span>Mèo {r.number} ({r.name})</span>
+              </span>
+            ))}
+          </div>
+
+          <span className="text-stone-400 text-[11px] hidden md:inline font-mono opacity-80 whitespace-nowrap">
+            🏟️ ĐƯỜNG ĐUA V ENGLISH HOUSE
+          </span>
         </div>
       </div>
 
