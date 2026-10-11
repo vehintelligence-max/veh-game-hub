@@ -1771,15 +1771,36 @@ export default function CatRaceTimer() {
                     />
                   </label>
 
-                  <label className="flex items-center justify-between p-2 rounded-xl hover:bg-stone-50 cursor-pointer">
-                    <span className="font-bold text-stone-700">Giọng đọc tiếng Việt xướng tên mèo thắng cuộc:</span>
-                    <input
-                      type="checkbox"
-                      checked={voiceAnnounceEnabled}
-                      onChange={(e) => setVoiceAnnounceEnabled(e.target.checked)}
-                      className="w-4 h-4 text-emerald-600 rounded"
-                    />
-                  </label>
+                  <div className="flex items-center justify-between p-2.5 rounded-xl hover:bg-stone-50 border border-stone-200/60">
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-stone-700 text-xs sm:text-sm">Xướng tên mèo vô địch bằng tiếng Việt:</span>
+                        <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase">
+                          ⭐ Chị Google Chuẩn 100%
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-stone-500 block mt-0.5">
+                        Tự nhiên, ấm áp, phát âm tiếng Việt chuẩn xác không méo tiếng.
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => speech.speakVietnamese("Chúc mừng Mèo số một, Miu Miu Quàng Khăn đã giành chiến thắng!")}
+                        className="px-2.5 py-1 text-[11px] font-bold bg-amber-100 text-amber-800 hover:bg-amber-200 rounded-lg flex items-center gap-1 transition"
+                        title="Nghe thử giọng tiếng Việt Chị Google"
+                      >
+                        <Volume2 className="w-3.5 h-3.5" />
+                        Nghe thử
+                      </button>
+                      <input
+                        type="checkbox"
+                        checked={voiceAnnounceEnabled}
+                        onChange={(e) => setVoiceAnnounceEnabled(e.target.checked)}
+                        className="w-4 h-4 text-emerald-600 rounded"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

@@ -5,6 +5,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import https from 'https';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,6 +13,41 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// High-Fidelity Vietnamese & English Text-to-Speech Proxy endpoint (Real native human voice)
+app.get('/api/tts', (req, res) => {
+  const text = String(req.query.text || '').trim();
+  const lang = String(req.query.lang || req.query.tl || 'vi').toLowerCase();
+  if (!text) {
+    return res.status(400).send('Missing text parameter');
+  }
+
+  const targetLang = lang.startsWith('vi') ? 'vi' : 'en';
+  const chunk = text.length > 200 ? text.substring(0, 200) : text;
+  const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${encodeURIComponent(targetLang)}&q=${encodeURIComponent(chunk)}`;
+
+  const request = https.get(ttsUrl, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Referer': 'https://translate.google.com/'
+    }
+  }, (ttsRes) => {
+    if (ttsRes.statusCode !== 200) {
+      console.warn(`[TTS Proxy] Upstream status: ${ttsRes.statusCode}`);
+      return res.status(ttsRes.statusCode).send('TTS upstream error');
+    }
+    res.setHeader('Content-Type', 'audio/mpeg');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    ttsRes.pipe(res);
+  });
+
+  request.on('error', (err) => {
+    console.error('[TTS Proxy Error]', err);
+    if (!res.headersSent) {
+      res.status(500).send('Internal TTS error');
+    }
+  });
+});
 
 const distPath = path.join(__dirname, 'dist');
 if (fs.existsSync(distPath)) {
