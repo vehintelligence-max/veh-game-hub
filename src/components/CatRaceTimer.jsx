@@ -208,19 +208,37 @@ function RunningCat({ racer, isRunning, isWinner, isLeader, effect }) {
       {/* SLAPSTICK COMIC ACTION POP BUBBLE */}
       {effect && (
         <div
-          className={`absolute -top-8 z-40 font-black text-[10px] px-2.5 py-0.5 rounded-full shadow-xl border-2 whitespace-nowrap animate-[comicPop_0.3s_cubic-bezier(0.34,1.56,0.64,1)] ${
+          className={`absolute -top-9 z-40 font-black text-[11px] px-3 py-1 rounded-full shadow-2xl border-2 whitespace-nowrap animate-[comicPop_0.3s_cubic-bezier(0.34,1.56,0.64,1)] ${
             isKicking
-              ? 'bg-rose-600 text-white border-white animate-[catSideKick_0.5s_infinite]'
+              ? 'bg-rose-600 text-white border-yellow-300 animate-[catSideKick_0.5s_infinite]'
               : isTumbled
               ? 'bg-yellow-400 text-stone-900 border-black'
               : isStumbled
-              ? 'bg-orange-500 text-white border-white'
+              ? 'bg-orange-600 text-white border-white animate-pulse'
               : isTurbo
               ? 'bg-cyan-500 text-stone-900 border-white'
               : 'bg-purple-600 text-white border-white'
           }`}
         >
           {effect.label || effect.type}
+        </div>
+      )}
+
+      {/* Kung-fu Kicking Paw extending towards victim's lane */}
+      {isKicking && (
+        <div
+          className={`absolute z-35 font-black text-2xl sm:text-3xl pointer-events-none animate-bounce ${
+            effect?.direction === 'down' ? 'top-10 -right-2 rotate-45' : '-top-8 -right-2 -rotate-45'
+          }`}
+        >
+          🦶💥
+        </div>
+      )}
+
+      {/* Impact burst on stumbled victim */}
+      {isStumbled && (
+        <div className="absolute -top-3 -right-3 z-35 font-black text-xl sm:text-2xl pointer-events-none animate-ping">
+          💥😵
         </div>
       )}
 
@@ -482,6 +500,8 @@ export default function CatRaceTimer() {
   const [trollModeEnabled, setTrollModeEnabled] = useState(true);
   const [catEffects, setCatEffects] = useState({});
   const catEffectsRef = useRef({});
+  const [activeKickClash, setActiveKickClash] = useState(null);
+  const activeKickClashRef = useRef(null);
   const lastSlapstickEventTimeRef = useRef(0);
   const [commentary, setCommentary] = useState({
     text: 'Chào mừng bạn đến với Giải Đua Mèo V English House! Chúc các chú mèo thi đấu fair-play (hoặc không...)!',
@@ -489,6 +509,27 @@ export default function CatRaceTimer() {
     icon: '📢',
     time: Date.now()
   });
+
+  // 1-Click Change Cat Color Palette
+  const handleChangeCatColor = (racerId, paletteIndex) => {
+    const palette = CAT_PALETTES[paletteIndex % CAT_PALETTES.length];
+    sound.playClick();
+    const updated = racers.map((r) => {
+      if (r.id === racerId) {
+        return {
+          ...r,
+          furColor: palette.fur,
+          stripeColor: palette.stripe,
+          accentColor: palette.accent,
+          accessory: palette.acc,
+          accessoryColor: palette.stripe,
+          label: r.name || `${palette.name} #${r.number}`
+        };
+      }
+      return r;
+    });
+    setRacers(updated);
+  };
 
   // ==========================================================================
   // CUSTOM NAMING & LINKED CLASS ROSTERS
@@ -565,6 +606,8 @@ export default function CatRaceTimer() {
     catEffectsRef.current = {};
     setCatEffects({});
     lastSlapstickEventTimeRef.current = 0;
+    activeKickClashRef.current = null;
+    setActiveKickClash(null);
     prevLeaderIdRef.current = null;
     lastLeadChangeCommentTimeRef.current = 0;
     lastSpokenCommentaryTimeRef.current = 0;
@@ -1012,6 +1055,10 @@ export default function CatRaceTimer() {
         catEffectsRef.current = curEffects;
         setCatEffects(curEffects);
       }
+      if (activeKickClashRef.current && activeKickClashRef.current.expiresAt <= now) {
+        activeKickClashRef.current = null;
+        setActiveKickClash(null);
+      }
 
       // 2. Trigger random slapstick event if Troll Mode is active
       if (trollModeEnabled && progress >= 0.12 && progress <= 0.94) {
@@ -1038,12 +1085,47 @@ export default function CatRaceTimer() {
               const pB = nextPos[pair.rB.id] || 0;
               const kicker = pA <= pB ? pair.rA : pair.rB;
               const victim = kicker.id === pair.rA.id ? pair.rB : pair.rA;
+              const kickerIndex = racers.findIndex((r) => r.id === kicker.id);
+              const victimIndex = racers.findIndex((r) => r.id === victim.id);
+              const direction = victimIndex > kickerIndex ? 'down' : 'up';
 
               const updatedEffects = { ...catEffectsRef.current };
-              updatedEffects[kicker.id] = { type: 'kicking', expiresAt: now + 900, label: 'Tung Cước! 😾💥' };
-              updatedEffects[victim.id] = { type: 'stumbled', expiresAt: now + 1200, label: 'Dính Đòn! 😵' };
+              updatedEffects[kicker.id] = {
+                type: 'kicking',
+                expiresAt: now + 1200,
+                label: `😾🦶 ${kicker.name} ĐÁ ${victim.name}!`,
+                kickerName: kicker.name,
+                victimName: victim.name,
+                victimNumber: victim.number,
+                direction
+              };
+              updatedEffects[victim.id] = {
+                type: 'stumbled',
+                expiresAt: now + 1500,
+                label: `😵💥 ${victim.name} BỊ ĐÁ! (-5m)`,
+                kickerName: kicker.name,
+                victimName: victim.name,
+                kickerNumber: kicker.number,
+                direction: direction === 'down' ? 'up' : 'down'
+              };
               catEffectsRef.current = updatedEffects;
               setCatEffects(updatedEffects);
+
+              const clashObj = {
+                kickerId: kicker.id,
+                kickerName: kicker.name,
+                kickerNumber: kicker.number,
+                victimId: victim.id,
+                victimName: victim.name,
+                victimNumber: victim.number,
+                kickerIndex,
+                victimIndex,
+                direction,
+                xPercent: (nextPos[kicker.id] || 0),
+                expiresAt: now + 1300
+              };
+              activeKickClashRef.current = clashObj;
+              setActiveKickClash(clashObj);
 
               nextPos[kicker.id] = Math.min(106, (nextPos[kicker.id] || 0) + 5.5);
               nextPos[victim.id] = Math.max(5, (nextPos[victim.id] || 0) - 5);
@@ -1756,23 +1838,56 @@ export default function CatRaceTimer() {
                   effect={catEffects[racer.id]}
                 />
 
-                {/* Name / Jersey Tag below Cat with 1-Click Inline Rename */}
+                {/* Name / Jersey Tag below Cat with 1-Click Inline Rename & Color Picker */}
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleOpenRenameModal(racer);
                   }}
-                  className="text-[10px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] bg-black/65 hover:bg-amber-600 px-2.5 py-0.5 rounded-full whitespace-nowrap -mt-1 border border-white/20 shadow flex items-center gap-1 group/rename transition cursor-pointer"
-                  title={`Nhấp để đổi tên cho ${racer.name}`}
+                  className="text-[10px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] bg-black/65 hover:bg-amber-600 px-2.5 py-0.5 rounded-full whitespace-nowrap -mt-1 border border-white/20 shadow flex items-center gap-1.5 group/rename transition cursor-pointer"
+                  title={`Nhấp để đổi tên & chọn màu cho ${racer.name}`}
                 >
+                  <span
+                    className="w-2.5 h-2.5 rounded-full border border-white/80 inline-block flex-shrink-0"
+                    style={{ backgroundColor: racer.furColor }}
+                  />
                   <span>{racer.name}</span>
-                  <span className="text-[9px] opacity-60 group-hover/rename:opacity-100">✏️</span>
+                  <span className="text-[9px] opacity-75 group-hover/rename:opacity-100">🎨 ✏️</span>
                 </button>
               </div>
             </div>
           );
         })}
+
+        {/* SLAPSTICK KICK IMPACT BANNER OVERLAY (Connects Kicker & Victim clearly) */}
+        {activeKickClash && (
+          <div
+            className="absolute z-40 pointer-events-none flex flex-col items-center animate-[comicPop_0.25s_cubic-bezier(0.34,1.56,0.64,1)] drop-shadow-2xl select-none"
+            style={{
+              left: `${7 + (activeKickClash.xPercent / 100) * 73}%`,
+              top: `${((activeKickClash.kickerIndex + activeKickClash.victimIndex + 1) / (2 * racers.length)) * 100}%`,
+              transform: 'translate(-50%, -50%)'
+            }}
+          >
+            <div className="relative flex items-center justify-center">
+              <div className="absolute -inset-4 bg-yellow-400/40 rounded-full blur-md animate-ping" />
+              <div className="bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 text-white font-black text-xs sm:text-sm px-4 py-2 rounded-2xl border-2 border-yellow-300 shadow-2xl flex items-center gap-2 whitespace-nowrap transform scale-110">
+                <span className="text-xl">💥</span>
+                <span className="bg-white/20 px-2 py-0.5 rounded-lg text-yellow-200">
+                  {activeKickClash.kickerName}
+                </span>
+                <span className="text-yellow-300 text-xs sm:text-sm font-extrabold">
+                  {activeKickClash.direction === 'down' ? 'TUNG CƯỚC ĐÁ XUỐNG ⬇️' : 'TUNG CƯỚC ĐÁ LÊN ⬆️'}
+                </span>
+                <span className="bg-black/40 px-2 py-0.5 rounded-lg text-white underline">
+                  {activeKickClash.victimName}
+                </span>
+                <span className="text-xl">🦶</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ==================================================================== */}
@@ -1821,8 +1936,8 @@ export default function CatRaceTimer() {
                     : 'text-stone-600 hover:text-black'
                 }`}
               >
-                <span>🏷️</span>
-                <span>Đặt Tên ({racers.length})</span>
+                <span>🎨</span>
+                <span>Tên & Màu ({racers.length})</span>
               </button>
 
               <button
@@ -2048,17 +2163,17 @@ export default function CatRaceTimer() {
             )}
 
             {/* ================================================================ */}
-            {/* TAB 2: CAT RACER NAMES (Option Đặt Tên Cho Từng Chú Mèo)          */}
+            {/* TAB 2: CAT RACER NAMES & COLORS (Tùy Chọn Đặt Tên & Chọn Màu)     */}
             {/* ================================================================ */}
             {settingsTab === 'names' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between pb-2 border-b border-stone-200 flex-wrap gap-2">
                   <div>
                     <span className="text-xs font-black uppercase text-stone-700 block">
-                      🏷️ Đặt Tên Riêng Cho {racers.length} Tuyển Thủ Mèo:
+                      🎨 Đặt Tên & Chọn Màu Sắc Cho {racers.length} Tuyển Thủ Mèo:
                     </span>
                     <span className="text-[11px] text-stone-500 font-medium">
-                      Nhập tên học sinh hoặc biệt danh riêng cho từng con mèo bên dưới:
+                      Nhập tên học sinh và bấm vào vòng tròn màu sắc để đổi màu lông cho từng chú mèo:
                     </span>
                   </div>
 
@@ -2084,42 +2199,76 @@ export default function CatRaceTimer() {
                   </div>
                 </div>
 
-                {/* Grid of Racers Name Inputs */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[360px] overflow-y-auto pr-1">
+                {/* Grid of Racers Name & Color Inputs */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[380px] overflow-y-auto pr-1">
                   {racers.map((racer) => (
                     <div
                       key={racer.id}
-                      className="flex items-center gap-2 p-2 rounded-xl bg-stone-50 border border-stone-200 hover:border-amber-400 transition"
+                      className="p-3 rounded-2xl bg-stone-50 border border-stone-200 hover:border-amber-400 transition flex flex-col gap-2 shadow-sm"
                     >
-                      {/* Avatar preview */}
-                      <div
-                        className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs text-white shadow-sm flex-shrink-0"
-                        style={{ backgroundColor: racer.furColor }}
-                      >
-                        #{racer.number}
+                      <div className="flex items-center gap-2">
+                        {/* Avatar preview */}
+                        <div
+                          className="w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs text-white shadow-sm flex-shrink-0 border-2 border-white/80"
+                          style={{ backgroundColor: racer.furColor }}
+                        >
+                          #{racer.number}
+                        </div>
+
+                        {/* Name input */}
+                        <input
+                          type="text"
+                          value={racer.name}
+                          onChange={(e) => handleRenameRacer(racer.id, e.target.value)}
+                          placeholder={`Tên Mèo số ${racer.number}...`}
+                          className="flex-1 bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#1F2421] outline-none focus:border-[#FFC600]"
+                        />
+
+                        {/* Quick dice for single cat */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const randName = FUNNY_CAT_NAMES[Math.floor(Math.random() * FUNNY_CAT_NAMES.length)];
+                            handleRenameRacer(racer.id, `${randName} #${racer.number}`);
+                          }}
+                          className="p-1.5 hover:bg-stone-200 rounded-lg text-stone-500 hover:text-stone-700 transition"
+                          title="Đổi tên hài hước cho mèo này"
+                        >
+                          🎲
+                        </button>
                       </div>
 
-                      {/* Name input */}
-                      <input
-                        type="text"
-                        value={racer.name}
-                        onChange={(e) => handleRenameRacer(racer.id, e.target.value)}
-                        placeholder={`Tên Mèo số ${racer.number}...`}
-                        className="flex-1 bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#1F2421] outline-none focus:border-[#FFC600]"
-                      />
-
-                      {/* Quick dice for single cat */}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const randName = FUNNY_CAT_NAMES[Math.floor(Math.random() * FUNNY_CAT_NAMES.length)];
-                          handleRenameRacer(racer.id, `${randName} #${racer.number}`);
-                        }}
-                        className="p-1.5 hover:bg-stone-200 rounded-lg text-stone-400 hover:text-stone-700 transition"
-                        title="Đổi tên hài hước cho mèo này"
-                      >
-                        🎲
-                      </button>
+                      {/* 1-Click Color Swatches for this Cat */}
+                      <div className="flex items-center gap-1.5 pl-1 overflow-x-auto scrollbar-none py-0.5">
+                        <span className="text-[10px] font-black text-stone-400 uppercase flex-shrink-0 mr-0.5">
+                          🎨 Màu lông:
+                        </span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {CAT_PALETTES.map((pal, pIdx) => {
+                            const isSelected = racer.furColor === pal.fur;
+                            return (
+                              <button
+                                key={pIdx}
+                                type="button"
+                                onClick={() => handleChangeCatColor(racer.id, pIdx)}
+                                className={`w-5 h-5 rounded-full border transition transform hover:scale-125 flex-shrink-0 relative ${
+                                  isSelected
+                                    ? 'ring-2 ring-black scale-110 border-white shadow-md'
+                                    : 'border-stone-300/80 hover:border-black'
+                                }`}
+                                style={{ backgroundColor: pal.fur }}
+                                title={`Chọn màu: ${pal.name}`}
+                              >
+                                {isSelected && (
+                                  <span className="absolute inset-0 flex items-center justify-center text-[9px] text-white font-black drop-shadow">
+                                    ✓
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -2336,7 +2485,7 @@ export default function CatRaceTimer() {
             <div className="flex items-center justify-between pb-2 border-b border-stone-200">
               <div className="flex items-center gap-2">
                 <Edit3 className="w-5 h-5 text-[#A67C1E]" />
-                <h3 className="font-black text-sm">Đổi Tên Mèo Số {editingRacer.number}</h3>
+                <h3 className="font-black text-sm">✏️ Đổi Tên & 🎨 Chọn Màu Mèo Số {editingRacer.number}</h3>
               </div>
               <button
                 type="button"
@@ -2383,6 +2532,47 @@ export default function CatRaceTimer() {
               </div>
             </div>
 
+            {/* 1-Click Color Selector */}
+            <div>
+              <span className="text-[10px] font-bold text-stone-400 block mb-1">
+                🎨 Chọn màu sắc lông ({CAT_PALETTES.length} màu):
+              </span>
+              <div className="grid grid-cols-4 gap-1.5 max-h-32 overflow-y-auto p-1.5 bg-stone-50 rounded-xl border border-stone-200">
+                {CAT_PALETTES.map((pal, pIdx) => {
+                  const isCurColor = editingRacer.furColor === pal.fur;
+                  return (
+                    <button
+                      key={pIdx}
+                      type="button"
+                      onClick={() => {
+                        handleChangeCatColor(editingRacer.id, pIdx);
+                        setEditingRacer((prev) => ({
+                          ...prev,
+                          furColor: pal.fur,
+                          stripeColor: pal.stripe,
+                          accentColor: pal.accent,
+                          accessory: pal.acc
+                        }));
+                      }}
+                      className={`p-1.5 rounded-lg border flex items-center gap-1.5 text-left transition ${
+                        isCurColor
+                          ? 'bg-amber-100 border-amber-500 ring-2 ring-amber-400 font-black shadow-sm'
+                          : 'bg-white border-stone-200 hover:border-stone-400'
+                      }`}
+                    >
+                      <div
+                        className="w-3.5 h-3.5 rounded-full border border-black/20 flex-shrink-0"
+                        style={{ backgroundColor: pal.fur }}
+                      />
+                      <span className="text-[9px] text-stone-700 truncate font-bold">
+                        {pal.name.replace('Mèo ', '')}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <div className="flex gap-2 pt-2">
               <button
                 type="button"
@@ -2396,7 +2586,7 @@ export default function CatRaceTimer() {
                 onClick={() => handleRenameRacer(editingRacer.id, editNameInput)}
                 className="flex-1 py-2.5 bg-[#FFC600] hover:bg-[#E6B200] text-[#1F2421] font-black text-xs rounded-xl shadow-duo-yellow transition"
               >
-                Lưu Tên
+                Lưu & Áp Dụng
               </button>
             </div>
           </div>
