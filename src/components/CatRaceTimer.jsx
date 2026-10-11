@@ -1,142 +1,98 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Settings, Music, Bell, Play, Pause, RotateCcw, Volume2, VolumeX,
-  Maximize2, Minimize2, Trophy, Sparkles, Flag, Plus, Trash2, Edit2,
-  Check, X, Users, RefreshCw
+  Maximize2, Minimize2, Trophy, Sparkles, Flag, Plus, Minus, Trash2,
+  Check, X, Users, RefreshCw, FileText, ArrowRight
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { sound } from '../utils/sound';
 import { speech } from '../utils/speech';
 
 // ============================================================================
-// 8 ICONIC CAT RACERS (Matching Duck Race style: Bandana, Antennae, Classic, Cool...)
+// 16 VIBRANT FUR PALETTES & ACCESSORIES FOR UNLIMITED CAT RUNNERS
 // ============================================================================
-const INITIAL_CAT_RACERS = [
-  {
-    id: 'cat_1',
-    number: 1,
-    name: 'Mèo Số 1',
-    label: 'Mèo Khăn Đỏ (Bandana)',
-    furColor: '#F59E0B',      // Warm Tabby Orange
-    accentColor: '#FEF3C7',   // Cream belly
-    stripeColor: '#D97706',
-    accessory: 'bandana',     // Red-and-white bandana matching Duck 1 in screenshot!
-    accessoryColor: '#EF4444',
+const CAT_PALETTES = [
+  { fur: '#F59E0B', stripe: '#D97706', accent: '#FEF3C7', acc: 'bandana', name: 'Mèo Khăn Đỏ' },
+  { fur: '#FBBF24', stripe: '#F59E0B', accent: '#FFFBEB', acc: 'classic', name: 'Mèo Vàng Vui Vẻ' },
+  { fur: '#4ADE80', stripe: '#16A34A', accent: '#DCFCE7', acc: 'antennae', name: 'Mèo Râu Bướm Xanh' },
+  { fur: '#FCD34D', stripe: '#F59E0B', accent: '#FEF9C3', acc: 'sunglasses', name: 'Mèo Ngầu Kính Râm' },
+  { fur: '#38BDF8', stripe: '#0284C7', accent: '#E0F2FE', acc: 'headband', name: 'Mèo Thể Thao Xanh' },
+  { fur: '#F472B6', stripe: '#DB2777', accent: '#FDF2F8', acc: 'bow', name: 'Mèo Nơ Hồng' },
+  { fur: '#EAB308', stripe: '#CA8A04', accent: '#FEF08A', acc: 'crown', name: 'Mèo Vương Giả' },
+  { fur: '#EF4444', stripe: '#B91C1C', accent: '#FEE2E2', acc: 'headband', name: 'Mèo Võ Sĩ Đỏ' },
+  { fur: '#A855F7', stripe: '#7E22CE', accent: '#F3E8FF', acc: 'sunglasses', name: 'Mèo Tím Tia Chớp' },
+  { fur: '#14B8A6', stripe: '#0F766E', accent: '#CCFBF1', acc: 'bandana', name: 'Mèo Xanh Ngọc' },
+  { fur: '#FB923C', stripe: '#C2410C', accent: '#FFEDD5', acc: 'classic', name: 'Mèo Hổ Cam' },
+  { fur: '#64748B', stripe: '#334155', accent: '#F1F5F9', acc: 'headband', name: 'Mèo Mướp Xám' },
+  { fur: '#84CC16', stripe: '#4D7C0F', accent: '#ECFCCB', acc: 'antennae', name: 'Mèo Cốm Non' },
+  { fur: '#EC4899', stripe: '#BE185D', accent: '#FCE7F3', acc: 'bow', name: 'Mèo Hồng Dâu' },
+  { fur: '#06B6D4', stripe: '#0E7490', accent: '#CFFAFE', acc: 'sunglasses', name: 'Mèo Băng Giá' },
+  { fur: '#6366F1', stripe: '#4338CA', accent: '#E0E7FF', acc: 'crown', name: 'Mèo Hoàng Tộc' },
+];
+
+export function buildRacer(number, customName = '') {
+  const p = CAT_PALETTES[(number - 1) % CAT_PALETTES.length];
+  const cleanedName = String(customName || '').trim();
+  return {
+    id: `cat_${number}_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+    number: number,
+    name: cleanedName || `Mèo Số ${number}`,
+    label: cleanedName || `${p.name} #${number}`,
+    furColor: p.fur,
+    accentColor: p.accent,
+    stripeColor: p.stripe,
+    accessory: p.acc,
+    accessoryColor: p.stripe,
     badgeColor: '#FFFFFF',
     emoji: '🐱'
-  },
-  {
-    id: 'cat_2',
-    number: 2,
-    name: 'Mèo Số 2',
-    label: 'Mèo Vàng Vui Vẻ (Classic)',
-    furColor: '#FBBF24',      // Bright Yellow / Golden
-    accentColor: '#FFFBEB',
-    stripeColor: '#F59E0B',
-    accessory: 'classic',     // Classic Yellow Rubber-Duck style Cat
-    accessoryColor: '#F59E0B',
-    badgeColor: '#FFFFFF',
-    emoji: '😸'
-  },
-  {
-    id: 'cat_3',
-    number: 3,
-    name: 'Mèo Số 3',
-    label: 'Mèo Xanh Râu Bướm (Antennae)',
-    furColor: '#4ADE80',      // Light Green matching Duck 3 in screenshot!
-    accentColor: '#DCFCE7',
-    stripeColor: '#22C55E',
-    accessory: 'antennae',    // Antennae stalks matching Duck 3 in screenshot!
-    accessoryColor: '#16A34A',
-    badgeColor: '#FFFFFF',
-    emoji: '🐛'
-  },
-  {
-    id: 'cat_4',
-    number: 4,
-    name: 'Mèo Số 4',
-    label: 'Mèo Ngầu Kính Râm (Cool Cat)',
-    furColor: '#FCD34D',      // Golden Yellow
-    accentColor: '#FEF9C3',
-    stripeColor: '#F59E0B',
-    accessory: 'sunglasses',  // Cool Sunglasses matching Duck 4
-    accessoryColor: '#1F2937',
-    badgeColor: '#FFFFFF',
-    emoji: '😎'
-  },
-  {
-    id: 'cat_5',
-    number: 5,
-    name: 'Mèo Số 5',
-    label: 'Mèo Thợ Lặn (Snorkel Blue)',
-    furColor: '#38BDF8',      // Ocean Sky Blue
-    accentColor: '#E0F2FE',
-    stripeColor: '#0284C7',
-    accessory: 'snorkel',
-    accessoryColor: '#F97316',
-    badgeColor: '#FFFFFF',
-    emoji: '🤿'
-  },
-  {
-    id: 'cat_6',
-    number: 6,
-    name: 'Mèo Số 6',
-    label: 'Mèo Nơ Hồng (Pink Ribbon)',
-    furColor: '#F472B6',      // Cute Pink
-    accentColor: '#FDF2F8',
-    stripeColor: '#DB2777',
-    accessory: 'bow',
-    accessoryColor: '#EC4899',
-    badgeColor: '#FFFFFF',
-    emoji: '🎀'
-  },
-  {
-    id: 'cat_7',
-    number: 7,
-    name: 'Mèo Số 7',
-    label: 'Mèo LEADER (V-House Gold)',
-    furColor: '#EAB308',      // Leader Gold
-    accentColor: '#FEF08A',
-    stripeColor: '#CA8A04',
-    accessory: 'crown',
-    accessoryColor: '#FFC600',
-    badgeColor: '#FFFFFF',
-    emoji: '👑'
-  },
-  {
-    id: 'cat_8',
-    number: 8,
-    name: 'Mèo Số 8',
-    label: 'Mèo FIGHTER (V-House Red)',
-    furColor: '#EF4444',      // Fighter Red
-    accentColor: '#FEE2E2',
-    stripeColor: '#B91C1C',
-    accessory: 'headband',
-    accessoryColor: '#991B1B',
-    badgeColor: '#FFFFFF',
-    emoji: '🥊'
-  }
+  };
+}
+
+// Initial 4 racers matching screenshot
+const DEFAULT_RACERS = [
+  buildRacer(1, 'Mèo Số 1'),
+  buildRacer(2, 'Mèo Số 2'),
+  buildRacer(3, 'Mèo Số 3'),
+  buildRacer(4, 'Mèo Số 4'),
 ];
 
 // Presets matching Duck Race and screenshot
 const PRESET_TIMES = [
   { label: '15s', seconds: 15 },
   { label: '30s', seconds: 30 },
-  { label: '39s (Ảnh mẫu)', seconds: 39 }, // Exact time in user's screenshot!
-  { label: '41s (Ref URL)', seconds: 41 },
+  { label: '39s (Ảnh mẫu)', seconds: 39 },
+  { label: '41s', seconds: 41 },
   { label: '1 Phút', seconds: 60 },
   { label: '2 Phút', seconds: 120 },
   { label: '3 Phút', seconds: 180 },
-  { label: '5 Phút (00:05:01)', seconds: 301 },
+  { label: '5 Phút', seconds: 300 },
 ];
 
+// Sample class rosters for 1-click loading
+const SAMPLE_ROSTERS = {
+  kids: [
+    'Bảo An', 'Gia Huy', 'Minh Khôi', 'Khánh Linh', 'Tuấn Kiệt',
+    'Bảo Châu', 'Đức Anh', 'Hương Giang', 'Minh Quân', 'Trúc Anh'
+  ],
+  teens: [
+    'Hoàng Long', 'Phương Thảo', 'Quốc Bảo', 'Thùy Chi', 'Minh Trí',
+    'Bảo Ngọc', 'Quang Hải', 'Thanh Hằng', 'Tuấn Tú', 'Kim Ngân',
+    'Tiến Đạt', 'Yến Nhi', 'Đăng Khoa', 'Khánh Vy', 'Thái An', 'Gia Bảo'
+  ],
+  large: [
+    'An', 'Bảo', 'Chi', 'Dũng', 'Emily', 'Hải', 'Linh', 'Minh',
+    'Nam', 'Phương', 'Quân', 'Sơn', 'Trang', 'Vũ', 'Khoa', 'Thịnh',
+    'Kiên', 'Hà', 'Vy', 'Nhi', 'Huy', 'Tùng', 'Đức', 'Lâm'
+  ]
+};
+
 // ============================================================================
-// SVG RUNNING & SWIMMING CAT (DUCK RACE STYLE - ACTIVE 4-PAW PADDLE & BODY GALLOP)
+// SVG ATHLETIC RUNNING CAT (Galloping on the Track with Dust Puffs & Number Bib)
 // ============================================================================
-function SwimmingCat({ racer, isRunning, isWinner, isLeader }) {
+function RunningCat({ racer, isRunning, isWinner, isLeader }) {
   const handleCatClick = () => {
-    const variants = { cat_1: 'excited', cat_2: 'kitten', cat_3: 'default', cat_4: 'deep' };
-    sound.playMeow(variants[racer.id] || 'default');
+    const variants = ['excited', 'kitten', 'default', 'deep'];
+    sound.playMeow(variants[(racer.number - 1) % 4]);
   };
 
   return (
@@ -145,37 +101,26 @@ function SwimmingCat({ racer, isRunning, isWinner, isLeader }) {
       className="relative flex items-center justify-center select-none cursor-pointer group active:scale-95 transition-transform"
       title={`Nhấn vào ${racer.name} để nghe tiếng mèo kêu!`}
     >
-      {/* 1. Dynamic Water Ripples Under Belly */}
-      <svg
-        viewBox="0 0 110 30"
-        className={`absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-28 h-7 pointer-events-none ${
-          isRunning ? 'animate-[wakePulse_0.4s_ease-out_infinite]' : 'opacity-70'
-        }`}
-      >
-        <ellipse cx="55" cy="15" rx="46" ry="7" fill="none" stroke="#BAE6FD" strokeWidth="2.5" opacity="0.8" />
-        <ellipse cx="55" cy="15" rx="36" ry="5" fill="none" stroke="#7DD3FC" strokeWidth="1.8" opacity="0.6" />
-      </svg>
-
-      {/* 2. Water Splashes & Spray shooting backwards from paddling paws */}
+      {/* 1. Dust Puffs kicking up behind rear paws when sprinting on track */}
       {isRunning && (
-        <div className="absolute -left-6 bottom-2 flex gap-1 pointer-events-none select-none">
-          <span className="text-sm inline-block animate-[waterSpray_0.35s_ease-out_infinite]">💦</span>
-          <span className="text-xs inline-block animate-[waterSpray_0.42s_ease-out_infinite_0.1s]">💧</span>
-          <span className="text-sm inline-block animate-[waterSpray_0.32s_ease-out_infinite_0.18s]">💦</span>
+        <div className="absolute -left-7 bottom-2.5 flex gap-1 pointer-events-none select-none z-10">
+          <span className="text-sm inline-block animate-[dustPuff_0.32s_ease-out_infinite]">💨</span>
+          <span className="text-xs inline-block animate-[dustPuff_0.4s_ease-out_infinite_0.08s]">💨</span>
+          <span className="text-sm inline-block animate-[dustPuff_0.36s_ease-out_infinite_0.16s]">💨</span>
         </div>
       )}
 
-      {/* 3. Crown / Star if leading */}
+      {/* 2. Leading Star / Crown if leading the pack */}
       {isLeader && isRunning && (
-        <div className="absolute -top-3.5 right-6 z-20 animate-bounce text-xs font-black drop-shadow">
+        <div className="absolute -top-4 right-6 z-30 animate-bounce text-xs font-black drop-shadow">
           ⭐
         </div>
       )}
 
-      {/* 4. The Swimming & Running Cat SVG */}
+      {/* 3. The Running Cat Actor SVG */}
       <svg
-        viewBox="0 0 120 85"
-        className={`w-24 h-16 sm:w-28 sm:h-20 drop-shadow-lg transition-transform ${
+        viewBox="0 0 120 86"
+        className={`w-24 h-16 sm:w-28 sm:h-20 drop-shadow-md transition-transform ${
           isWinner ? 'scale-115 drop-shadow-2xl' : ''
         }`}
       >
@@ -186,184 +131,183 @@ function SwimmingCat({ racer, isRunning, isWinner, isLeader }) {
           </linearGradient>
         </defs>
 
-        {/* Dynamic Galloping & Swimming Body Group */}
+        {/* Athletic Track Ground Shadow underneath running cat */}
+        <ellipse cx="58" cy="78" rx="36" ry="5.5" fill="rgba(0,0,0,0.3)" />
+
+        {/* Dynamic Galloping & Running Body Group */}
         <g
           style={{
             transformOrigin: '56px 48px',
-            animation: isRunning ? 'catGallop 0.32s ease-in-out infinite' : 'none'
+            animation: isRunning ? 'catGallop 0.28s ease-in-out infinite' : 'none'
           }}
         >
-          {/* A. Tail Wagging / Rudder swishing vigorously in water */}
+          {/* A. Tail Streaming High in the Wind as it runs */}
           <g
             style={{
-              transformOrigin: '24px 44px',
-              animation: isRunning ? 'catTailSwim 0.26s ease-in-out infinite' : 'catTail 1.5s ease-in-out infinite'
+              transformOrigin: '24px 42px',
+              animation: isRunning ? 'catTailSwim 0.24s ease-in-out infinite' : 'catTail 1.5s ease-in-out infinite'
             }}
           >
             <path
-              d="M 24 44 Q 8 32, 10 18 Q 18 32, 26 42 Z"
+              d="M 24 42 Q 6 18, 12 6 Q 20 18, 27 38 Z"
               fill={`url(#furGrad_${racer.id})`}
               stroke="#1F2421"
               strokeWidth="2.5"
             />
           </g>
 
-          {/* B. BACK LEFT PAW (Chân sau trái - Kicking water backward, lower layer) */}
+          {/* B. BACK LEFT LEG & PAW (Kicking back off the ground) */}
           <g
             style={{
               transformOrigin: '32px 48px',
-              animation: isRunning ? 'catPawKickBack2 0.32s ease-in-out infinite' : 'none'
+              animation: isRunning ? 'catPawKickBack2 0.28s ease-in-out infinite' : 'none'
             }}
           >
-            <ellipse cx="28" cy="54" rx="8" ry="5" fill={racer.furColor} stroke="#1F2421" strokeWidth="2" opacity="0.85" />
-            <circle cx="31" cy="55" r="1.3" fill="#FCA5A5" />
-            <circle cx="27" cy="56" r="1.3" fill="#FCA5A5" />
+            <path d="M 32 46 Q 22 56 24 66" stroke={racer.furColor} strokeWidth="6" strokeLinecap="round" />
+            <ellipse cx="23" cy="68" rx="7.5" ry="5" fill={racer.furColor} stroke="#1F2421" strokeWidth="2" />
+            <circle cx="26" cy="69" r="1.3" fill="#FCA5A5" />
+            <circle cx="22" cy="70" r="1.3" fill="#FCA5A5" />
           </g>
 
-          {/* C. Chubby Swimming Cat Body floating in water */}
-          <ellipse cx="56" cy="48" rx="34" ry="22" fill={`url(#furGrad_${racer.id})`} stroke="#1F2421" strokeWidth="2.8" />
+          {/* C. Athletic Cat Body */}
+          <ellipse cx="56" cy="46" rx="34" ry="21" fill={`url(#furGrad_${racer.id})`} stroke="#1F2421" strokeWidth="2.8" />
 
-          {/* D. Cat Belly accent */}
-          <ellipse cx="58" cy="53" rx="22" ry="13" fill={racer.accentColor} />
+          {/* D. Belly Accent */}
+          <ellipse cx="58" cy="51" rx="22" ry="12" fill={racer.accentColor} />
 
           {/* E. Tabby Stripes */}
-          <path d="M 44 32 Q 47 40, 44 46" stroke={racer.stripeColor} strokeWidth="2.8" strokeLinecap="round" fill="none" />
-          <path d="M 54 30 Q 57 40, 54 48" stroke={racer.stripeColor} strokeWidth="2.8" strokeLinecap="round" fill="none" />
-          <path d="M 64 32 Q 67 40, 64 46" stroke={racer.stripeColor} strokeWidth="2.8" strokeLinecap="round" fill="none" />
+          <path d="M 44 30 Q 47 38, 44 44" stroke={racer.stripeColor} strokeWidth="2.8" strokeLinecap="round" fill="none" />
+          <path d="M 54 28 Q 57 38, 54 46" stroke={racer.stripeColor} strokeWidth="2.8" strokeLinecap="round" fill="none" />
+          <path d="M 64 30 Q 67 38, 64 44" stroke={racer.stripeColor} strokeWidth="2.8" strokeLinecap="round" fill="none" />
 
-          {/* F. BACK RIGHT PAW (Chân sau phải - Kicking water backward, upper layer) */}
+          {/* F. BACK RIGHT LEG & PAW (Kicking back off track, upper layer) */}
           <g
             style={{
               transformOrigin: '42px 50px',
-              animation: isRunning ? 'catPawKickBack1 0.32s ease-in-out infinite' : 'none'
+              animation: isRunning ? 'catPawKickBack1 0.28s ease-in-out infinite' : 'none'
             }}
           >
-            <ellipse cx="38" cy="58" rx="8.5" ry="5.5" fill={racer.furColor} stroke="#1F2421" strokeWidth="2.2" />
-            <circle cx="41" cy="59" r="1.5" fill="#FCA5A5" />
-            <circle cx="37" cy="60" r="1.5" fill="#FCA5A5" />
-            <circle cx="33" cy="59" r="1.5" fill="#FCA5A5" />
+            <path d="M 42 48 Q 32 58 34 68" stroke={racer.furColor} strokeWidth="6.5" strokeLinecap="round" />
+            <ellipse cx="33" cy="70" rx="8" ry="5.5" fill={racer.furColor} stroke="#1F2421" strokeWidth="2.2" />
+            <circle cx="36" cy="71" r="1.5" fill="#FCA5A5" />
+            <circle cx="32" cy="72" r="1.5" fill="#FCA5A5" />
+            <circle cx="28" cy="71" r="1.5" fill="#FCA5A5" />
           </g>
 
-          {/* G. Cat Head */}
-          <circle cx="82" cy="34" r="21" fill={`url(#furGrad_${racer.id})`} stroke="#1F2421" strokeWidth="2.8" />
+          {/* G. Cat Head Leaning Forward into the Wind */}
+          <circle cx="83" cy="33" r="21" fill={`url(#furGrad_${racer.id})`} stroke="#1F2421" strokeWidth="2.8" />
 
-          {/* H. Cat Ears */}
-          {/* Left Ear */}
-          <polygon points="69,21 75,6 83,18" fill={racer.furColor} stroke="#1F2421" strokeWidth="2.5" strokeLinejoin="round" />
-          <polygon points="72,19 76,9 81,17" fill="#FCA5A5" />
-          {/* Right Ear */}
-          <polygon points="84,18 92,6 98,21" fill={racer.furColor} stroke="#1F2421" strokeWidth="2.5" strokeLinejoin="round" />
-          <polygon points="86,17 91,9 95,19" fill="#FCA5A5" />
+          {/* H. Cat Ears Back in Racing Mode */}
+          <polygon points="70,20 76,5 84,17" fill={racer.furColor} stroke="#1F2421" strokeWidth="2.5" strokeLinejoin="round" />
+          <polygon points="73,18 77,8 82,16" fill="#FCA5A5" />
+          <polygon points="85,17 93,5 99,20" fill={racer.furColor} stroke="#1F2421" strokeWidth="2.5" strokeLinejoin="round" />
+          <polygon points="87,16 92,8 96,18" fill="#FCA5A5" />
 
-          {/* I. Accessories matching Duck Race screenshot */}
+          {/* I. Accessories */}
           {racer.accessory === 'bandana' && (
             <g>
-              <path d="M 68,26 Q 82,23 96,27" stroke="#EF4444" strokeWidth="6.5" strokeLinecap="round" fill="none" />
-              <circle cx="73" cy="25" r="1.3" fill="#FFFFFF" />
-              <circle cx="82" cy="24" r="1.3" fill="#FFFFFF" />
-              <circle cx="91" cy="26" r="1.3" fill="#FFFFFF" />
-              <path d="M 67 26 Q 60 20 54 26 Q 61 28 67 26" fill="#EF4444" stroke="#1F2421" strokeWidth="1.5" />
-              <path d="M 66 28 Q 58 32 52 38 Q 60 34 66 28" fill="#EF4444" stroke="#1F2421" strokeWidth="1.5" />
+              <path d="M 69,25 Q 83,22 97,26" stroke="#EF4444" strokeWidth="6.5" strokeLinecap="round" fill="none" />
+              <circle cx="74" cy="24" r="1.3" fill="#FFFFFF" />
+              <circle cx="83" cy="23" r="1.3" fill="#FFFFFF" />
+              <circle cx="92" cy="25" r="1.3" fill="#FFFFFF" />
+              <path d="M 67 25 Q 58 18 52 24 Q 60 27 67 25" fill="#EF4444" stroke="#1F2421" strokeWidth="1.5" />
+              <path d="M 66 27 Q 56 31 50 37 Q 58 33 66 27" fill="#EF4444" stroke="#1F2421" strokeWidth="1.5" />
             </g>
           )}
 
           {racer.accessory === 'antennae' && (
             <g>
-              <path d="M 77 15 Q 73 5 67 4" stroke="#16A34A" strokeWidth="3" fill="none" strokeLinecap="round" />
-              <circle cx="67" cy="4" r="3.5" fill="#22C55E" stroke="#1F2421" strokeWidth="1.8" />
-              <path d="M 87 15 Q 91 5 97 4" stroke="#16A34A" strokeWidth="3" fill="none" strokeLinecap="round" />
-              <circle cx="97" cy="4" r="3.5" fill="#22C55E" stroke="#1F2421" strokeWidth="1.8" />
+              <path d="M 78 14 Q 74 4 68 3" stroke="#16A34A" strokeWidth="3" fill="none" strokeLinecap="round" />
+              <circle cx="68" cy="3" r="3.5" fill="#22C55E" stroke="#1F2421" strokeWidth="1.8" />
+              <path d="M 88 14 Q 92 4 98 3" stroke="#16A34A" strokeWidth="3" fill="none" strokeLinecap="round" />
+              <circle cx="98" cy="3" r="3.5" fill="#22C55E" stroke="#1F2421" strokeWidth="1.8" />
             </g>
           )}
 
           {racer.accessory === 'sunglasses' && (
             <g>
-              <path d="M 75 30 Q 83 28 92 31" stroke="#111827" strokeWidth="2.5" fill="none" />
-              <rect x="76" y="28" width="10" height="9" rx="3" fill="#111827" stroke="#374151" strokeWidth="1" />
-              <rect x="88" y="29" width="10" height="9" rx="3" fill="#111827" stroke="#374151" strokeWidth="1" />
-              <line x1="78" y1="30" x2="83" y2="35" stroke="#9CA3AF" strokeWidth="1.2" strokeLinecap="round" />
-              <line x1="90" y1="31" x2="95" y2="36" stroke="#9CA3AF" strokeWidth="1.2" strokeLinecap="round" />
-            </g>
-          )}
-
-          {racer.accessory === 'snorkel' && (
-            <g>
-              <rect x="76" y="27" width="22" height="11" rx="4" fill="#0284C7" stroke="#1F2421" strokeWidth="1.8" />
-              <rect x="78" y="29" width="18" height="7" rx="2" fill="#BAE6FD" opacity="0.8" />
-              <path d="M 98 33 Q 105 33 105 18 L 105 12" stroke="#F97316" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-              <circle cx="105" cy="11" r="2.5" fill="#EF4444" />
+              <path d="M 76 29 Q 84 27 93 30" stroke="#111827" strokeWidth="2.5" fill="none" />
+              <rect x="77" y="27" width="10" height="9" rx="3" fill="#111827" stroke="#374151" strokeWidth="1" />
+              <rect x="89" y="28" width="10" height="9" rx="3" fill="#111827" stroke="#374151" strokeWidth="1" />
+              <line x1="79" y1="29" x2="84" y2="34" stroke="#9CA3AF" strokeWidth="1.2" strokeLinecap="round" />
+              <line x1="91" y1="30" x2="96" y2="35" stroke="#9CA3AF" strokeWidth="1.2" strokeLinecap="round" />
             </g>
           )}
 
           {racer.accessory === 'bow' && (
             <g>
-              <polygon points="76,14 84,20 76,26" fill="#EC4899" stroke="#1F2421" strokeWidth="1.5" />
-              <polygon points="92,14 84,20 92,26" fill="#EC4899" stroke="#1F2421" strokeWidth="1.5" />
-              <circle cx="84" cy="20" r="3" fill="#F43F5E" />
+              <polygon points="77,13 85,19 77,25" fill="#EC4899" stroke="#1F2421" strokeWidth="1.5" />
+              <polygon points="93,13 85,19 93,25" fill="#EC4899" stroke="#1F2421" strokeWidth="1.5" />
+              <circle cx="85" cy="19" r="3" fill="#F43F5E" />
             </g>
           )}
 
           {racer.accessory === 'crown' && (
-            <polygon points="78,14 81,6 85,12 89,6 92,14" fill="#FFC600" stroke="#1F2421" strokeWidth="1.8" strokeLinejoin="round" />
+            <polygon points="79,13 82,5 86,11 90,5 93,13" fill="#FFC600" stroke="#1F2421" strokeWidth="1.8" strokeLinejoin="round" />
           )}
 
           {racer.accessory === 'headband' && (
-            <path d="M 68,27 Q 82,24 96,28" stroke="#991B1B" strokeWidth="5.5" strokeLinecap="round" fill="none" />
-          )}
-
-          {/* J. Cat Face */}
-          {racer.accessory !== 'sunglasses' && racer.accessory !== 'snorkel' && (
             <g>
-              <ellipse cx="88" cy="31" rx="4" ry="5.5" fill="#1F2421" />
-              <circle cx="89.5" cy="29" r="1.8" fill="#FFFFFF" />
-              <circle cx="87" cy="34" r="0.9" fill="#FFFFFF" />
-              <polygon points="95,36 97,38.5 99,36" fill="#F43F5E" />
-              <path d="M 93 39 Q 95 42 97 39.5 Q 99 42 101 39" stroke="#1F2421" strokeWidth="1.8" strokeLinecap="round" fill="none" />
-              <line x1="94" y1="38" x2="106" y2="36" stroke="#1F2421" strokeWidth="1.5" strokeLinecap="round" />
-              <line x1="94" y1="41" x2="106" y2="42" stroke="#1F2421" strokeWidth="1.5" strokeLinecap="round" />
+              <path d="M 69,26 Q 83,23 97,27" stroke="#DC2626" strokeWidth="5.5" strokeLinecap="round" fill="none" />
+              <path d="M 67 26 Q 54 28 48 34" stroke="#DC2626" strokeWidth="3" fill="none" strokeLinecap="round" />
             </g>
           )}
 
-          {/* K. FRONT LEFT PAW (Chân trước trái - Paddling forward, lower layer) */}
+          {/* J. Focused Racing Eyes */}
+          {racer.accessory !== 'sunglasses' && (
+            <g>
+              <ellipse cx="89" cy="30" rx="4" ry="5.5" fill="#1F2421" />
+              <circle cx="90.5" cy="28" r="1.8" fill="#FFFFFF" />
+              <circle cx="88" cy="33" r="0.9" fill="#FFFFFF" />
+              <polygon points="96,35 98,37.5 100,35" fill="#F43F5E" />
+              <path d="M 94 38 Q 96 41 98 38.5 Q 100 41 102 38" stroke="#1F2421" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+              <line x1="95" y1="37" x2="107" y2="35" stroke="#1F2421" strokeWidth="1.5" strokeLinecap="round" />
+              <line x1="95" y1="40" x2="107" y2="41" stroke="#1F2421" strokeWidth="1.5" strokeLinecap="round" />
+            </g>
+          )}
+
+          {/* K. FRONT LEFT LEG & PAW (Striding forward) */}
           <g
             style={{
-              transformOrigin: '76px 50px',
-              animation: isRunning ? 'catPawPaddleFront2 0.32s ease-in-out infinite' : 'none'
+              transformOrigin: '76px 48px',
+              animation: isRunning ? 'catPawPaddleFront2 0.28s ease-in-out infinite' : 'none'
             }}
           >
-            <ellipse cx="76" cy="54" rx="7.5" ry="5" fill={racer.furColor} stroke="#1F2421" strokeWidth="2" opacity="0.9" />
-            <circle cx="79" cy="55" r="1.3" fill="#FCA5A5" />
-            <circle cx="75" cy="56" r="1.3" fill="#FCA5A5" />
+            <path d="M 76 46 Q 80 56 86 64" stroke={racer.furColor} strokeWidth="5.5" strokeLinecap="round" />
+            <ellipse cx="87" cy="65" rx="7.5" ry="5" fill={racer.furColor} stroke="#1F2421" strokeWidth="2" opacity="0.9" />
+            <circle cx="90" cy="66" r="1.3" fill="#FCA5A5" />
+            <circle cx="86" cy="67" r="1.3" fill="#FCA5A5" />
           </g>
 
-          {/* L. FRONT RIGHT PAW (Chân trước phải - Paddling forward, dipping in water) */}
+          {/* L. FRONT RIGHT LEG & PAW (Striding forward, touching track) */}
           <g
             style={{
-              transformOrigin: '88px 52px',
-              animation: isRunning ? 'catPawPaddleFront1 0.32s ease-in-out infinite' : 'none'
+              transformOrigin: '88px 50px',
+              animation: isRunning ? 'catPawPaddleFront1 0.28s ease-in-out infinite' : 'none'
             }}
           >
-            <ellipse cx="88" cy="56" rx="8" ry="5.5" fill={racer.furColor} stroke="#1F2421" strokeWidth="2.2" />
-            <circle cx="92" cy="57" r="1.5" fill="#FCA5A5" />
-            <circle cx="88" cy="58" r="1.5" fill="#FCA5A5" />
-            <circle cx="84" cy="57" r="1.5" fill="#FCA5A5" />
+            <path d="M 86 48 Q 92 58 98 66" stroke={racer.furColor} strokeWidth="6" strokeLinecap="round" />
+            <ellipse cx="99" cy="68" rx="8" ry="5.5" fill={racer.furColor} stroke="#1F2421" strokeWidth="2.2" />
+            <circle cx="103" cy="69" r="1.5" fill="#FCA5A5" />
+            <circle cx="99" cy="70" r="1.5" fill="#FCA5A5" />
+            <circle cx="95" cy="69" r="1.5" fill="#FCA5A5" />
           </g>
 
-          {/* M. ICONIC DUCK-RACE STYLE WHITE NUMBER BADGE ON BODY */}
+          {/* M. ICONIC NUMBER RACING BIB ON CAT'S BACK */}
           <g>
             <rect
               x="38"
-              y="35"
+              y="33"
               width="26"
               height="24"
-              rx="8"
+              rx="7"
               fill="#FFFFFF"
               stroke="#1F2421"
               strokeWidth="3.2"
             />
             <text
               x="51"
-              y="52"
+              y="50"
               textAnchor="middle"
               fontSize="18"
               fontWeight="900"
@@ -373,15 +317,6 @@ function SwimmingCat({ racer, isRunning, isWinner, isLeader }) {
               {racer.number}
             </text>
           </g>
-
-          {/* N. Water line covering bottom */}
-          <path
-            d="M 16 62 Q 35 57 55 62 Q 75 67 95 62 Q 105 60 112 62"
-            stroke="#38BDF8"
-            strokeWidth="3.5"
-            fill="none"
-            strokeLinecap="round"
-          />
         </g>
       </svg>
     </div>
@@ -389,20 +324,19 @@ function SwimmingCat({ racer, isRunning, isWinner, isLeader }) {
 }
 
 // ============================================================================
-// MAIN COMPONENT: CAT RACE STOPWATCH (EXACT CLONE OF DUCK RACE)
+// MAIN COMPONENT: CAT RACE TRACK STOPWATCH (UNLIMITED RACERS ON ATHLETIC TRACK)
 // ============================================================================
 export default function CatRaceTimer() {
-  const [totalSeconds, setTotalSeconds] = useState(39); // 39 seconds matching screenshot!
+  const [totalSeconds, setTotalSeconds] = useState(39);
   const [remainingSeconds, setRemainingSeconds] = useState(39);
   const [isRunning, setIsRunning] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
 
-  // Racers (Default 4 lanes matching screenshot: 1, 2, 3, 4)
-  const [activeLaneCount, setActiveLaneCount] = useState(4);
-  const [racers, setRacers] = useState(() => INITIAL_CAT_RACERS.slice(0, 4));
+  // Unlimited Racers State
+  const [racers, setRacers] = useState(DEFAULT_RACERS);
 
   // Race Physics & Positioning
-  const [positions, setPositions] = useState({}); // { [id]: percent (0 to 100) }
+  const [positions, setPositions] = useState({});
   const [leaderId, setLeaderId] = useState(null);
   const [winner, setWinner] = useState(null);
   const [rankings, setRankings] = useState([]);
@@ -418,27 +352,22 @@ export default function CatRaceTimer() {
   const [customMin, setCustomMin] = useState('');
   const [customSec, setCustomSec] = useState('39');
 
+  // Custom Roster Input
+  const [rosterInput, setRosterInput] = useState('');
+
   const containerRef = useRef(null);
   const raceStartTimeRef = useRef(null);
-  const elapsedOffsetRef = useRef(0); // In seconds, tracks elapsed time through pause/resume
+  const elapsedOffsetRef = useRef(0);
   const animFrameRef = useRef(null);
   const lastSecondTickedRef = useRef(null);
   const racerPersonalitiesRef = useRef({});
 
-  // Sync racers when lane count changes
-  useEffect(() => {
-    const updated = INITIAL_CAT_RACERS.slice(0, activeLaneCount);
-    setRacers(updated);
-    handleResetRace(totalSeconds, updated);
-  }, [activeLaneCount]);
-
-  // Format seconds to digital stopwatch display: HH:MM:SS or MM:SS (e.g. 00:00:39 matching screenshot)
+  // Format seconds to digital stopwatch display: HH:MM:SS
   const formatTime = (secs) => {
     const s = Math.max(0, Math.floor(secs));
     const hours = Math.floor(s / 3600);
     const minutes = Math.floor((s % 3600) / 60);
     const seconds = s % 60;
-
     const pad = (num) => String(num).padStart(2, '0');
     return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
   };
@@ -448,6 +377,7 @@ export default function CatRaceTimer() {
     if (animFrameRef.current) {
       cancelAnimationFrame(animFrameRef.current);
     }
+    sound.stopRaceMusic();
     setIsRunning(false);
     setIsFinished(false);
     setWinner(null);
@@ -457,7 +387,6 @@ export default function CatRaceTimer() {
     elapsedOffsetRef.current = 0;
     raceStartTimeRef.current = null;
     lastSecondTickedRef.current = newTotal;
-    sound.stopRaceMusic();
 
     // Generate distinct racer personalities for fluid overtakes & sprints
     const initPos = {};
@@ -465,12 +394,12 @@ export default function CatRaceTimer() {
     currentRacers.forEach((r, idx) => {
       initPos[r.id] = 0;
       pers[r.id] = {
-        freq1: 0.9 + ((idx * 0.45) % 1.1),
-        freq2: 1.8 + ((idx * 0.6) % 1.4),
-        phase1: idx * 1.6 + Math.random(),
-        phase2: idx * 2.2 + 0.9,
-        amplitude: 4.8 + (idx % 3) * 1.4, // Amplitude of passing waves (% of track)
-        sprintPower: 5 + Math.random() * 5.5, // Sprint boost in final stretch
+        freq1: 0.85 + ((idx * 0.35) % 1.2),
+        freq2: 1.7 + ((idx * 0.5) % 1.3),
+        phase1: idx * 1.5 + Math.random(),
+        phase2: idx * 2.1 + 0.8,
+        amplitude: 4.8 + (idx % 4) * 1.3,
+        sprintPower: 5 + Math.random() * 5.5,
       };
     });
     racerPersonalitiesRef.current = pers;
@@ -516,6 +445,60 @@ export default function CatRaceTimer() {
     };
   }, []);
 
+  // Set exact racer count (Unlimited: from 2 up to 50+)
+  const handleSetRacerCount = (count) => {
+    const target = Math.max(2, parseInt(count, 10) || 4);
+    sound.playClick();
+    const newRacers = [];
+    for (let i = 1; i <= target; i++) {
+      if (racers[i - 1]) {
+        newRacers.push(racers[i - 1]);
+      } else {
+        newRacers.push(buildRacer(i));
+      }
+    }
+    setRacers(newRacers);
+    handleResetRace(totalSeconds, newRacers);
+  };
+
+  // Add 1 racer
+  const handleAddRacer = () => {
+    sound.playClick();
+    const newRacer = buildRacer(racers.length + 1);
+    const updated = [...racers, newRacer];
+    setRacers(updated);
+    handleResetRace(totalSeconds, updated);
+  };
+
+  // Remove 1 racer
+  const handleRemoveRacer = () => {
+    if (racers.length <= 2) return;
+    sound.playClick();
+    const updated = racers.slice(0, racers.length - 1);
+    setRacers(updated);
+    handleResetRace(totalSeconds, updated);
+  };
+
+  // Import custom student roster
+  const handleImportRoster = (namesList) => {
+    const names = namesList
+      .split('\n')
+      .map((n) => n.trim())
+      .filter((n) => n.length > 0);
+
+    if (names.length < 2) {
+      alert('Vui lòng nhập danh sách ít nhất 2 tên học sinh!');
+      return;
+    }
+
+    sound.playCorrect();
+    const newRacers = names.map((name, idx) => buildRacer(idx + 1, name));
+    setRacers(newRacers);
+    handleResetRace(totalSeconds, newRacers);
+    setRosterInput('');
+    setIsSettingsOpen(false);
+  };
+
   // Smooth 60fps Animation & Physics Loop (Silky fluid movement, no jerky jumps)
   useEffect(() => {
     if (!isRunning) {
@@ -545,7 +528,7 @@ export default function CatRaceTimer() {
             sound.setRaceMusicUrgent(true);
             sound.playUrgentTick();
           } else {
-            sound.playSplash();
+            sound.playTick();
           }
 
           // Random playful cat meows during the heat of competition (every 3-5 seconds)
@@ -567,7 +550,6 @@ export default function CatRaceTimer() {
           freq1: 1, freq2: 2, phase1: 0, phase2: 0, amplitude: 5, sprintPower: 5
         };
 
-        // Continuous sinusoidal wave surges creating dramatic overtakes
         const wave1 = Math.sin(elapsedSec * pers.freq1 + pers.phase1);
         const wave2 = Math.sin(elapsedSec * pers.freq2 + pers.phase2);
         const surge = (wave1 * 0.65 + wave2 * 0.35) * pers.amplitude;
@@ -639,7 +621,6 @@ export default function CatRaceTimer() {
     });
     setPositions(finalPos);
 
-    // Sounds & Celebration
     if (alarmBellEnabled) {
       sound.playAlarmBell();
     }
@@ -652,7 +633,6 @@ export default function CatRaceTimer() {
       origin: { y: 0.55 },
     });
 
-    // Voice announcement in Vietnamese
     if (voiceAnnounceEnabled) {
       setTimeout(() => {
         speech.speakVietnamese(
@@ -693,19 +673,31 @@ export default function CatRaceTimer() {
     }
   };
 
+  // Calculate live Top 3 Leaders
+  const liveLeaders = [...racers]
+    .sort((a, b) => (positions[b.id] || 0) - (positions[a.id] || 0))
+    .slice(0, 3);
+
+  // Dynamic lane height based on racer count
+  const laneHeightClass =
+    racers.length <= 6
+      ? 'h-24 sm:h-28'
+      : racers.length <= 10
+      ? 'h-20 sm:h-22'
+      : 'h-16 sm:h-18';
+
   return (
     <div
       ref={containerRef}
       className={`relative w-full rounded-3xl overflow-hidden shadow-2xl border-4 border-[#222B38] select-none flex flex-col font-sans ${
-        isFullscreen ? 'fixed inset-0 z-50 rounded-none border-none h-screen' : 'min-h-[580px] sm:min-h-[660px]'
+        isFullscreen ? 'fixed inset-0 z-50 rounded-none border-none h-screen' : 'min-h-[600px]'
       }`}
     >
       {/* ==================================================================== */}
-      {/* 1. TOP GRASSY RIVERBANK WITH RETRO CONTROLS & DIGITAL CLOCK           */}
-      {/* (Exact match with Duck Race screenshot!)                             */}
+      {/* 1. TOP STADIUM GRASS BORDER WITH CONTROLS & DIGITAL COUNTDOWN CLOCK   */}
       {/* ==================================================================== */}
-      <div className="relative bg-[#3EA824] px-3 sm:px-6 py-2.5 sm:py-3 z-30 flex items-center justify-between shadow-md border-b-4 border-[#267316]">
-        {/* Bush bumps & grass tufts along river edge */}
+      <div className="sticky top-0 bg-[#3EA824] px-3 sm:px-6 py-2 sm:py-2.5 z-30 flex items-center justify-between shadow-md border-b-4 border-[#267316]">
+        {/* Stadium turf border trim */}
         <div className="absolute -bottom-3 left-0 right-0 h-4 flex overflow-hidden pointer-events-none">
           {Array.from({ length: 40 }).map((_, i) => (
             <div
@@ -716,8 +708,8 @@ export default function CatRaceTimer() {
           ))}
         </div>
 
-        {/* LEFT CONTROLS: Square Black Buttons (⚙️, 🎵, 🔔) & Bubble Text Buttons */}
-        <div className="flex items-center gap-2 sm:gap-3 z-10">
+        {/* LEFT CONTROLS: Square Black Buttons (⚙️, 🎵, 🔔, ➕, ➖) & Start/Clear */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5 z-10 flex-wrap">
           {/* Black Square Buttons with White Icons matching screenshot */}
           <div className="flex items-center gap-1 bg-[#1A202C] p-1 rounded-xl border-2 border-black/30 shadow-md">
             {/* 1. Settings Gear */}
@@ -728,7 +720,7 @@ export default function CatRaceTimer() {
                 setIsSettingsOpen(!isSettingsOpen);
               }}
               className="p-1.5 sm:p-2 bg-[#2D3748] hover:bg-[#4A5568] text-white rounded-lg transition"
-              title="Cài đặt thời gian & số lượng mèo đua"
+              title="Cài đặt thời gian, thêm mèo & nạp danh sách học sinh"
             >
               <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
@@ -774,42 +766,80 @@ export default function CatRaceTimer() {
                 <Bell className="w-4 h-4 sm:w-5 sm:h-5 opacity-40" />
               )}
             </button>
+
+            {/* 4. Quick Add Racer (+) Button */}
+            <button
+              type="button"
+              onClick={handleAddRacer}
+              className="p-1.5 sm:p-2 bg-[#2D3748] hover:bg-emerald-600 text-white rounded-lg transition flex items-center gap-0.5"
+              title="Thêm 1 Mèo (Không giới hạn số lượng!)"
+            >
+              <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-300" />
+              <span className="text-[10px] font-black hidden sm:inline">Thêm</span>
+            </button>
+
+            {/* 5. Quick Remove Racer (-) Button */}
+            {racers.length > 2 && (
+              <button
+                type="button"
+                onClick={handleRemoveRacer}
+                className="p-1.5 sm:p-2 bg-[#2D3748] hover:bg-rose-600 text-white rounded-lg transition"
+                title="Bớt 1 Mèo"
+              >
+                <Minus className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-300" />
+              </button>
+            )}
           </div>
 
-          {/* Retro Bubble Text Buttons: "Pause / Start" and "Clear" matching screenshot */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-2.5">
+          {/* PAUSE / START & CLEAR BUTTONS */}
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={handleTogglePlay}
-              className="text-white hover:text-yellow-200 font-black text-xs sm:text-base tracking-wide drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] active:translate-y-0.5 transition uppercase"
+              className="px-3 sm:px-4 py-1.5 bg-[#1A202C] hover:bg-[#2D3748] text-white font-black text-xs sm:text-sm rounded-xl border-2 border-black/30 shadow-md transition tracking-wide active:translate-y-0.5 flex items-center gap-1.5"
             >
-              {isRunning ? 'Pause' : isFinished ? 'Start' : 'Start'}
+              {isRunning ? (
+                <>
+                  <Pause className="w-3.5 h-3.5 text-yellow-300" />
+                  <span>PAUSE</span>
+                </>
+              ) : (
+                <>
+                  <Play className="w-3.5 h-3.5 text-emerald-400 fill-emerald-400" />
+                  <span>START</span>
+                </>
+              )}
             </button>
+
             <button
               type="button"
               onClick={() => {
                 sound.playClick();
                 handleResetRace();
               }}
-              className="text-white hover:text-yellow-200 font-black text-xs sm:text-base tracking-wide drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] active:translate-y-0.5 transition uppercase"
+              className="text-white hover:text-yellow-200 font-black text-xs sm:text-sm tracking-wide drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] active:translate-y-0.5 transition uppercase"
             >
-              Clear
+              CLEAR
             </button>
           </div>
         </div>
 
-        {/* CENTER: THE ICONIC DIGITAL COUNTDOWN CLOCK BOX (Matching screenshot 00:00:39!) */}
-        <div className="z-10 bg-[#F4F4FD] border-[3.5px] border-[#1A202C] rounded-2xl px-4 sm:px-8 py-1 sm:py-1.5 shadow-xl flex items-center justify-center">
-          <span className="font-mono text-3xl sm:text-5xl font-black text-[#1A202C] tracking-widest drop-shadow-sm select-all">
+        {/* CENTER: THE ICONIC DIGITAL COUNTDOWN CLOCK BOX (00:00:21) */}
+        <div className="z-10 bg-[#F4F4FD] border-[3.5px] border-[#1A202C] rounded-2xl px-3 sm:px-7 py-1 shadow-xl flex items-center justify-center">
+          <span className="font-mono text-2xl sm:text-4xl font-black text-[#1A202C] tracking-widest drop-shadow-sm select-all">
             {formatTime(remainingSeconds)}
           </span>
         </div>
 
-        {/* RIGHT: BRAND TAG & FULLSCREEN (Matching Online-Stopwatch.com logo) */}
+        {/* RIGHT: RACER COUNT PILL & FULLSCREEN */}
         <div className="flex items-center gap-2 z-10">
-          <div className="hidden md:flex items-center gap-1 text-[11px] font-black text-white drop-shadow-[0_1.5px_2px_rgba(0,0,0,0.8)] bg-black/30 px-3 py-1 rounded-full border border-white/20">
-            <span className="text-yellow-300">⬆️</span>
-            <span>Online-Stopwatch · V English House</span>
+          <div
+            onClick={() => setIsSettingsOpen(true)}
+            className="cursor-pointer flex items-center gap-1.5 text-[11px] font-black text-white bg-black/40 hover:bg-black/60 px-3 py-1.5 rounded-full border border-white/20 transition shadow"
+            title="Nhấn để đổi số lượng mèo hoặc nạp danh sách học sinh"
+          >
+            <span className="text-yellow-300">🐱</span>
+            <span>{racers.length} Mèo Đua</span>
           </div>
 
           <button
@@ -823,75 +853,64 @@ export default function CatRaceTimer() {
         </div>
       </div>
 
+      {/* TOP LIVE LEADERBOARD TICKER */}
+      <div className="bg-[#1F2421] text-white text-[11px] font-bold px-4 py-1 flex items-center justify-between border-b border-white/10 z-20">
+        <div className="flex items-center gap-2 overflow-x-auto">
+          <span className="text-yellow-400 font-black uppercase text-[10px] tracking-wider flex items-center gap-1 flex-shrink-0">
+            🏆 TOP DẪN ĐẦU:
+          </span>
+          {liveLeaders.map((r, i) => (
+            <span key={r.id} className="whitespace-nowrap flex items-center gap-1 opacity-90 text-[11px]">
+              <span className="text-xs">{i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}</span>
+              <span className={i === 0 ? 'text-yellow-300 font-black' : ''}>{r.name}</span>
+              {i < liveLeaders.length - 1 && <span className="text-stone-500 mx-1">•</span>}
+            </span>
+          ))}
+        </div>
+        <span className="text-stone-400 text-[10px] hidden md:inline font-mono">
+          Đường Chạy Điền Kinh V English House
+        </span>
+      </div>
+
       {/* ==================================================================== */}
-      {/* 2. THE BLUE RIVER RACETRACK (Exact Duck Race wavy river & lanes)      */}
+      {/* 2. THE ATHLETIC RUNNING TRACK (Terracotta Sports Surface & Lanes)      */}
       {/* ==================================================================== */}
-      <div className="relative flex-1 bg-[#2C82BC] overflow-hidden flex flex-col justify-around py-3 sm:py-5 min-h-[440px]">
-        {/* 1. LAYER 1: SEAMLESS FLOWING RIVER CURRENT & WATER RAPIDS (Moves from right to left!) */}
+      <div className="relative flex-1 bg-[#B83A26] overflow-y-auto max-h-[640px] flex flex-col py-2 sm:py-3 select-none">
+        {/* Moving track lines & athletic road texture */}
         <div
           className={`absolute inset-0 flex pointer-events-none select-none ${
-            isRunning ? 'animate-[riverFlowFast_1.6s_linear_infinite]' : 'animate-[riverFlowSlow_8s_linear_infinite]'
+            isRunning ? 'animate-[trackRunFlowFast_1.4s_linear_infinite]' : 'animate-[trackRunFlowSlow_7s_linear_infinite]'
           }`}
           style={{ width: '200%' }}
         >
-          {/* Segment A (100% width) */}
+          {/* Segment A */}
           <div className="w-1/2 h-full relative overflow-hidden">
-            <svg className="w-full h-full opacity-45" preserveAspectRatio="none" viewBox="0 0 1200 400">
-              {/* Deep wavy river current contours */}
-              <path d="M 0 45 Q 300 75, 600 45 T 1200 45" fill="none" stroke="#BAE6FD" strokeWidth="4" />
-              <path d="M 0 105 Q 300 65, 600 105 T 1200 105" fill="none" stroke="#E0F2FE" strokeWidth="3" strokeDasharray="25 15" />
-              <path d="M 0 165 Q 300 195, 600 165 T 1200 165" fill="none" stroke="#7DD3FC" strokeWidth="3.5" />
-              <path d="M 0 225 Q 300 185, 600 225 T 1200 225" fill="none" stroke="#E0F2FE" strokeWidth="3" strokeDasharray="30 20" />
-              <path d="M 0 285 Q 300 315, 600 285 T 1200 285" fill="none" stroke="#BAE6FD" strokeWidth="4" />
-              <path d="M 0 345 Q 300 305, 600 345 T 1200 345" fill="none" stroke="#E0F2FE" strokeWidth="3" strokeDasharray="25 15" />
-
-              {/* Rushing white water foam streaks & rapids */}
-              <line x1="80" y1="70" x2="200" y2="70" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.85" />
-              <line x1="380" y1="130" x2="520" y2="130" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" opacity="0.9" />
-              <line x1="720" y1="85" x2="880" y2="85" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.8" />
-              <line x1="950" y1="150" x2="1080" y2="150" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.85" />
-
-              <line x1="160" y1="210" x2="310" y2="210" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" opacity="0.85" />
-              <line x1="560" y1="250" x2="700" y2="250" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.9" />
-              <line x1="840" y1="215" x2="990" y2="215" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.8" />
-
-              <line x1="100" y1="330" x2="240" y2="330" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.85" />
-              <line x1="420" y1="370" x2="590" y2="370" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" opacity="0.9" />
-              <line x1="780" y1="340" x2="940" y2="340" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.8" />
+            <svg className="w-full h-full opacity-35" preserveAspectRatio="none" viewBox="0 0 1200 400">
+              <line x1="0" y1="35" x2="1200" y2="35" stroke="#FFFFFF" strokeWidth="2.5" strokeDasharray="30 25" />
+              <line x1="0" y1="95" x2="1200" y2="95" stroke="#FFFFFF" strokeWidth="2.5" strokeDasharray="30 25" />
+              <line x1="0" y1="155" x2="1200" y2="155" stroke="#FFFFFF" strokeWidth="2.5" strokeDasharray="30 25" />
+              <line x1="0" y1="215" x2="1200" y2="215" stroke="#FFFFFF" strokeWidth="2.5" strokeDasharray="30 25" />
+              <line x1="0" y1="275" x2="1200" y2="275" stroke="#FFFFFF" strokeWidth="2.5" strokeDasharray="30 25" />
+              <line x1="0" y1="335" x2="1200" y2="335" stroke="#FFFFFF" strokeWidth="2.5" strokeDasharray="30 25" />
             </svg>
           </div>
-
-          {/* Segment B (100% width, identical copy for seamless infinite loop) */}
+          {/* Segment B (duplicate for infinite seamless translation) */}
           <div className="w-1/2 h-full relative overflow-hidden">
-            <svg className="w-full h-full opacity-45" preserveAspectRatio="none" viewBox="0 0 1200 400">
-              <path d="M 0 45 Q 300 75, 600 45 T 1200 45" fill="none" stroke="#BAE6FD" strokeWidth="4" />
-              <path d="M 0 105 Q 300 65, 600 105 T 1200 105" fill="none" stroke="#E0F2FE" strokeWidth="3" strokeDasharray="25 15" />
-              <path d="M 0 165 Q 300 195, 600 165 T 1200 165" fill="none" stroke="#7DD3FC" strokeWidth="3.5" />
-              <path d="M 0 225 Q 300 185, 600 225 T 1200 225" fill="none" stroke="#E0F2FE" strokeWidth="3" strokeDasharray="30 20" />
-              <path d="M 0 285 Q 300 315, 600 285 T 1200 285" fill="none" stroke="#BAE6FD" strokeWidth="4" />
-              <path d="M 0 345 Q 300 305, 600 345 T 1200 345" fill="none" stroke="#E0F2FE" strokeWidth="3" strokeDasharray="25 15" />
-
-              <line x1="80" y1="70" x2="200" y2="70" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.85" />
-              <line x1="380" y1="130" x2="520" y2="130" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" opacity="0.9" />
-              <line x1="720" y1="85" x2="880" y2="85" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.8" />
-              <line x1="950" y1="150" x2="1080" y2="150" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.85" />
-
-              <line x1="160" y1="210" x2="310" y2="210" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" opacity="0.85" />
-              <line x1="560" y1="250" x2="700" y2="250" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.9" />
-              <line x1="840" y1="215" x2="990" y2="215" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.8" />
-
-              <line x1="100" y1="330" x2="240" y2="330" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.85" />
-              <line x1="420" y1="370" x2="590" y2="370" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" opacity="0.9" />
-              <line x1="780" y1="340" x2="940" y2="340" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.8" />
+            <svg className="w-full h-full opacity-35" preserveAspectRatio="none" viewBox="0 0 1200 400">
+              <line x1="0" y1="35" x2="1200" y2="35" stroke="#FFFFFF" strokeWidth="2.5" strokeDasharray="30 25" />
+              <line x1="0" y1="95" x2="1200" y2="95" stroke="#FFFFFF" strokeWidth="2.5" strokeDasharray="30 25" />
+              <line x1="0" y1="155" x2="1200" y2="155" stroke="#FFFFFF" strokeWidth="2.5" strokeDasharray="30 25" />
+              <line x1="0" y1="215" x2="1200" y2="215" stroke="#FFFFFF" strokeWidth="2.5" strokeDasharray="30 25" />
+              <line x1="0" y1="275" x2="1200" y2="275" stroke="#FFFFFF" strokeWidth="2.5" strokeDasharray="30 25" />
+              <line x1="0" y1="335" x2="1200" y2="335" stroke="#FFFFFF" strokeWidth="2.5" strokeDasharray="30 25" />
             </svg>
           </div>
         </div>
 
-        {/* STARTING AREA (Left Side): Checkered Start Line & Bold Lane Numbers */}
+        {/* STARTING LINE (Left Side): Checkered Start Line & Starting Block Base */}
         <div className="absolute left-0 top-0 bottom-0 w-12 sm:w-16 z-20 pointer-events-none flex">
-          {/* Vertical Checkered Ribbon matching screenshot */}
-          <div className="w-5 sm:w-6 h-full flex flex-col border-r-2 border-[#1A202C] overflow-hidden shadow-lg">
-            {Array.from({ length: 36 }).map((_, i) => (
+          <div className="w-5 sm:w-6 h-full flex flex-col border-r-2 border-white/80 overflow-hidden shadow-lg">
+            {Array.from({ length: 48 }).map((_, i) => (
               <div
                 key={i}
                 className={`h-4 w-full flex ${i % 2 === 0 ? 'bg-black' : 'bg-white'}`}
@@ -904,7 +923,7 @@ export default function CatRaceTimer() {
 
         {/* FINISH LINE (Right Side): Checkered Tape & Flag */}
         <div className="absolute right-6 sm:right-10 top-0 bottom-0 w-6 sm:w-8 z-20 pointer-events-none flex flex-col border-x-2 border-white/80 shadow-2xl overflow-hidden">
-          {Array.from({ length: 36 }).map((_, i) => (
+          {Array.from({ length: 48 }).map((_, i) => (
             <div
               key={i}
               className={`h-4 w-full flex ${i % 2 === 0 ? 'bg-black' : 'bg-white'}`}
@@ -912,16 +931,14 @@ export default function CatRaceTimer() {
               <div className={`w-1/2 h-full ${i % 2 === 0 ? 'bg-white' : 'bg-black'}`} />
             </div>
           ))}
-          {/* Finish Post Flag Banner */}
           <div className="absolute top-2 -right-3 bg-red-600 text-white font-black text-[10px] px-1.5 py-0.5 rounded shadow">
             🏁 FINISH
           </div>
         </div>
 
-        {/* RACING LANES (Each lane has its number painted on water + swimming cat) */}
-        {racers.map((racer, index) => {
+        {/* ALL RACING LANES (Unlimited: Each lane has its bold painted number + running cat actor) */}
+        {racers.map((racer) => {
           const posPercent = positions[racer.id] || 0;
-          // Scale position across the track: from 8% (start dock) to 84% (finish tape)
           const leftStyle = 8 + (posPercent / 100) * 76;
           const isLead = leaderId === racer.id;
           const isWin = winner?.id === racer.id;
@@ -929,25 +946,25 @@ export default function CatRaceTimer() {
           return (
             <div
               key={racer.id}
-              className="relative h-18 sm:h-22 flex items-center px-2 z-10"
+              className={`relative ${laneHeightClass} flex items-center px-2 z-10 border-b-2 border-white/35 border-dashed`}
             >
-              {/* BIG BOLD LANE NUMBER DRAWN ON WATER (Exact match with screenshot 1, 2, 3, 4!) */}
+              {/* BOLD WHITE NUMBER PAINTED ON TRACK */}
               <div className="absolute left-8 sm:left-10 z-10 pointer-events-none select-none">
                 <span
-                  className="font-black text-3xl sm:text-5xl text-[#1A202C] opacity-80"
+                  className="font-black text-2xl sm:text-4xl text-white opacity-85"
                   style={{
                     fontFamily: 'Impact, Arial Black, Montserrat, sans-serif',
-                    textShadow: '0 2px 4px rgba(255,255,255,0.4)'
+                    textShadow: '0 2px 4px rgba(0,0,0,0.6)'
                   }}
                 >
                   {racer.number}
                 </span>
               </div>
 
-              {/* Gentle water ripples behind cat lane */}
-              <div className="absolute left-14 right-14 top-1/2 -translate-y-1/2 border-b border-[#5DAFE5]/40 pointer-events-none" />
+              {/* Running Track Lane Divider Center Line */}
+              <div className="absolute left-16 right-16 top-1/2 -translate-y-1/2 border-b border-white/20 pointer-events-none" />
 
-              {/* THE SWIMMING CAT ACTOR */}
+              {/* THE RUNNING CAT ACTOR */}
               <div
                 className={`absolute z-20 flex flex-col items-center ${
                   isRunning ? 'transition-none' : 'transition-all duration-300 ease-out'
@@ -957,16 +974,15 @@ export default function CatRaceTimer() {
                   transform: 'translateX(-50%)'
                 }}
               >
-                {/* Cat Actor */}
-                <SwimmingCat
+                <RunningCat
                   racer={racer}
                   isRunning={isRunning}
                   isWinner={isWin}
                   isLeader={isLead}
                 />
 
-                {/* Optional Cat Name / House Tag below actor */}
-                <span className="text-[10px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] bg-black/40 px-2 py-0.5 rounded-full whitespace-nowrap -mt-1">
+                {/* Name / Jersey Tag below Cat */}
+                <span className="text-[10px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] bg-black/50 px-2 py-0.5 rounded-full whitespace-nowrap -mt-1 border border-white/10">
                   {racer.name}
                 </span>
               </div>
@@ -976,15 +992,15 @@ export default function CatRaceTimer() {
       </div>
 
       {/* ==================================================================== */}
-      {/* 3. SETTINGS & CUSTOMIZATION MODAL (When teacher clicks ⚙️ Gear)       */}
+      {/* 3. SETTINGS & UNLIMITED ROSTER MODAL (When teacher clicks ⚙️ Gear)     */}
       {/* ==================================================================== */}
       {isSettingsOpen && (
         <div className="absolute inset-0 z-40 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-white rounded-3xl p-5 sm:p-7 max-w-lg w-full text-[#1F2421] shadow-2xl border-4 border-[#FFC600] space-y-4 max-h-[92vh] overflow-y-auto">
+          <div className="bg-white rounded-3xl p-5 sm:p-7 max-w-xl w-full text-[#1F2421] shadow-2xl border-4 border-[#FFC600] space-y-4 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-stone-200">
               <div className="flex items-center gap-2">
                 <Settings className="w-5 h-5 text-[#A67C1E]" />
-                <h3 className="font-black text-base sm:text-lg">Cài Đặt Đua Mèo • Cat Race</h3>
+                <h3 className="font-black text-base sm:text-lg">Cài Đặt Đua Mèo • Unlimited Cat Race</h3>
               </div>
               <button
                 type="button"
@@ -995,7 +1011,7 @@ export default function CatRaceTimer() {
               </button>
             </div>
 
-            {/* 1. Quick Presets */}
+            {/* 1. Quick Presets for Countdown */}
             <div>
               <label className="text-xs font-black uppercase text-stone-500 block mb-2">
                 ⏱️ Chọn Nhanh Thời Gian Đếm Ngược:
@@ -1019,7 +1035,7 @@ export default function CatRaceTimer() {
             </div>
 
             {/* 2. Custom Time Form */}
-            <form onSubmit={handleApplyCustomTime} className="space-y-2">
+            <form onSubmit={handleApplyCustomTime} className="space-y-1.5">
               <label className="text-xs font-black uppercase text-stone-500 block">
                 ✍️ Hoặc Nhập Thời Gian Tự Chọn:
               </label>
@@ -1031,9 +1047,9 @@ export default function CatRaceTimer() {
                   placeholder="0 Phút"
                   value={customMin}
                   onChange={(e) => setCustomMin(e.target.value)}
-                  className="w-1/2 p-2.5 bg-stone-50 border border-stone-300 rounded-xl text-xs font-bold text-center outline-none focus:border-[#FFC600]"
+                  className="w-1/2 p-2 bg-stone-50 border border-stone-300 rounded-xl text-xs font-bold text-center outline-none focus:border-[#FFC600]"
                 />
-                <span className="font-black text-lg">:</span>
+                <span className="font-black text-base">:</span>
                 <input
                   type="number"
                   min="0"
@@ -1041,47 +1057,118 @@ export default function CatRaceTimer() {
                   placeholder="39 Giây"
                   value={customSec}
                   onChange={(e) => setCustomSec(e.target.value)}
-                  className="w-1/2 p-2.5 bg-stone-50 border border-stone-300 rounded-xl text-xs font-bold text-center outline-none focus:border-[#FFC600]"
+                  className="w-1/2 p-2 bg-stone-50 border border-stone-300 rounded-xl text-xs font-bold text-center outline-none focus:border-[#FFC600]"
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2.5 bg-[#FFC600] text-[#1F2421] font-black text-xs rounded-xl shadow-duo-yellow hover:brightness-105 transition flex-shrink-0"
+                  className="px-4 py-2 bg-[#FFC600] text-[#1F2421] font-black text-xs rounded-xl shadow-duo-yellow hover:brightness-105 transition flex-shrink-0"
                 >
                   Áp Dụng
                 </button>
               </div>
             </form>
 
-            {/* 3. Choose Number of Lanes */}
-            <div>
-              <label className="text-xs font-black uppercase text-stone-500 block mb-2">
-                🐱 Số Làn Đua Mèo (Mặc định 4 như ảnh mẫu):
-              </label>
-              <div className="flex gap-2">
-                {[2, 3, 4, 5, 6, 8].map((num) => (
+            {/* 3. Unlimited Lane Selection */}
+            <div className="pt-2 border-t border-stone-200">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-black uppercase text-stone-700">
+                  🐱 Số Lượng Mèo Đua (Không Giới Hạn): <span className="text-emerald-700 font-extrabold">{racers.length} Mèo</span>
+                </label>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={handleAddRacer}
+                    className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-lg transition flex items-center gap-1 shadow"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Thêm Mèo
+                  </button>
+                  {racers.length > 2 && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveRacer}
+                      className="px-2.5 py-1 bg-rose-600 hover:bg-rose-500 text-white font-black text-xs rounded-lg transition flex items-center gap-1 shadow"
+                    >
+                      <Minus className="w-3.5 h-3.5" /> Bớt Mèo
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Quick count chips */}
+              <div className="flex flex-wrap gap-2 mb-3">
+                {[4, 8, 12, 16, 20, 24, 30].map((num) => (
                   <button
                     key={num}
                     type="button"
-                    onClick={() => {
-                      sound.playClick();
-                      setActiveLaneCount(num);
-                    }}
-                    className={`flex-1 py-2 rounded-xl font-black text-xs border transition ${
-                      activeLaneCount === num
+                    onClick={() => handleSetRacerCount(num)}
+                    className={`px-3 py-1.5 rounded-xl font-black text-xs border transition ${
+                      racers.length === num
                         ? 'bg-[#1F2421] text-white border-black shadow'
                         : 'bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100'
                     }`}
                   >
-                    {num} Làn
+                    {num} Mèo
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* 4. Audio Toggles */}
+            {/* 4. Import Student Roster (Dán danh sách học sinh) */}
+            <div className="pt-2 border-t border-stone-200 space-y-2">
+              <label className="text-xs font-black uppercase text-stone-700 block">
+                🎓 Dán Danh Sách Tên Học Sinh (Mỗi học sinh 1 con mèo):
+              </label>
+
+              {/* Sample Class Roster Quick Load Buttons */}
+              <div className="flex flex-wrap gap-2 text-xs">
+                <span className="text-[11px] font-bold text-stone-400 self-center">Mẫu lớp:</span>
+                <button
+                  type="button"
+                  onClick={() => handleImportRoster(SAMPLE_ROSTERS.kids.join('\n'))}
+                  className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-[11px] rounded-lg transition"
+                >
+                  🎒 Lớp Kids (10 bé)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleImportRoster(SAMPLE_ROSTERS.teens.join('\n'))}
+                  className="px-2.5 py-1 bg-sky-50 hover:bg-sky-100 text-sky-900 border border-sky-300 font-bold text-[11px] rounded-lg transition"
+                >
+                  🏫 Lớp Teens (16 em)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleImportRoster(SAMPLE_ROSTERS.large.join('\n'))}
+                  className="px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-300 font-bold text-[11px] rounded-lg transition"
+                >
+                  👥 Cả Lớp 24 Học Sinh
+                </button>
+              </div>
+
+              <textarea
+                rows={3}
+                placeholder="Dán danh sách tên học sinh vào đây (mỗi dòng 1 tên)...&#10;Ví dụ:&#10;Bảo An&#10;Gia Huy&#10;Minh Khôi"
+                value={rosterInput}
+                onChange={(e) => setRosterInput(e.target.value)}
+                className="w-full p-2.5 bg-stone-50 border border-stone-300 rounded-xl text-xs font-mono outline-none focus:border-[#FFC600] resize-none"
+              />
+
+              {rosterInput.trim().length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => handleImportRoster(rosterInput)}
+                  className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow transition flex items-center justify-center gap-1.5"
+                >
+                  <ArrowRight className="w-4 h-4" />
+                  <span>Áp Dụng Danh Sách ({rosterInput.split('\n').filter((l) => l.trim()).length} Học Sinh)</span>
+                </button>
+              )}
+            </div>
+
+            {/* 5. Audio Settings */}
             <div className="pt-2 border-t border-stone-200 space-y-2 text-xs">
               <label className="flex items-center justify-between p-2 rounded-xl hover:bg-stone-50 cursor-pointer">
-                <span className="font-bold text-stone-700">Âm thanh bơi nước bì bõm & còi xuất phát:</span>
+                <span className="font-bold text-stone-700">Nhạc nền thi đấu sôi động & tiếng mèo kêu:</span>
                 <input
                   type="checkbox"
                   checked={soundEnabled}
@@ -1120,7 +1207,6 @@ export default function CatRaceTimer() {
       {isFinished && winner && (
         <div className="absolute inset-0 z-40 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-bounce-short">
           <div className="bg-white border-4 border-[#FFC600] rounded-3xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl relative text-[#1F2421]">
-            {/* Gold Trophy with Bouncing Winner Cat */}
             <div className="w-20 h-20 bg-[#FFC600] text-[#1F2421] rounded-full flex items-center justify-center mx-auto mb-3 text-4xl shadow-duo-yellow animate-bounce">
               🏆
             </div>
@@ -1134,7 +1220,7 @@ export default function CatRaceTimer() {
             </h3>
 
             <p className="text-xs text-stone-600 mt-1 font-medium">
-              Đã bơi qua vạch đích đầu tiên khi đồng hồ điểm 00:00:00!
+              Đã chạy băng qua vạch đích đầu tiên khi đồng hồ điểm 00:00:00!
             </p>
 
             {/* Podium Top 3 Rankings */}
@@ -1178,10 +1264,10 @@ export default function CatRaceTimer() {
               <button
                 type="button"
                 onClick={() => handleResetRace()}
-                className="flex-2 py-3 bg-[#FFC600] hover:brightness-105 text-[#1F2421] font-black text-xs rounded-xl shadow-duo-yellow transition flex items-center justify-center gap-1.5"
+                className="flex-1 py-3 bg-[#FFC600] hover:bg-[#E6B200] text-[#1F2421] font-black text-xs rounded-xl shadow-duo-yellow transition flex items-center justify-center gap-1.5"
               >
                 <RotateCcw className="w-4 h-4" />
-                <span>Chạy Lại Cuộc Đua Mới</span>
+                <span>Đua Lại</span>
               </button>
             </div>
           </div>
