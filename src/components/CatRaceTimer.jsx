@@ -504,6 +504,7 @@ export default function CatRaceTimer() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [alarmBellEnabled, setAlarmBellEnabled] = useState(true);
   const [voiceAnnounceEnabled, setVoiceAnnounceEnabled] = useState(true);
+  const [liveCasterVoiceEnabled, setLiveCasterVoiceEnabled] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
@@ -520,6 +521,20 @@ export default function CatRaceTimer() {
   const animFrameRef = useRef(null);
   const lastSecondTickedRef = useRef(null);
   const racerPersonalitiesRef = useRef({});
+  const prevLeaderIdRef = useRef(null);
+  const lastLeadChangeCommentTimeRef = useRef(0);
+  const lastSpokenCommentaryTimeRef = useRef(0);
+  const finalSprintAnnouncedRef = useRef(false);
+  const raceStartAnnouncedRef = useRef(false);
+
+  // Live Sports Caster TTS Voice Helper (High-energy, throttled to prevent overlapping)
+  const speakCaster = (text, minInterval = 3400) => {
+    if (!liveCasterVoiceEnabled || !soundEnabled) return;
+    const now = Date.now();
+    if (now - lastSpokenCommentaryTimeRef.current < minInterval) return;
+    lastSpokenCommentaryTimeRef.current = now;
+    speech.speakVietnamese(text, 1.05);
+  };
 
   // Format seconds to digital stopwatch display: HH:MM:SS
   const formatTime = (secs) => {
@@ -537,6 +552,7 @@ export default function CatRaceTimer() {
       cancelAnimationFrame(animFrameRef.current);
     }
     sound.stopRaceMusic();
+    speech.stop();
     setIsRunning(false);
     setIsFinished(false);
     setWinner(null);
@@ -549,6 +565,11 @@ export default function CatRaceTimer() {
     catEffectsRef.current = {};
     setCatEffects({});
     lastSlapstickEventTimeRef.current = 0;
+    prevLeaderIdRef.current = null;
+    lastLeadChangeCommentTimeRef.current = 0;
+    lastSpokenCommentaryTimeRef.current = 0;
+    finalSprintAnnouncedRef.current = false;
+    raceStartAnnouncedRef.current = false;
     setCommentary({
       text: 'Đường đua đã sẵn sàng! Nhấn Bắt Đầu để xuất phát!',
       type: 'normal',
@@ -591,6 +612,7 @@ export default function CatRaceTimer() {
       // PAUSE
       sound.playClick();
       sound.stopRaceMusic();
+      speech.stop();
       setIsRunning(false);
       if (animFrameRef.current) {
         cancelAnimationFrame(animFrameRef.current);
@@ -608,6 +630,25 @@ export default function CatRaceTimer() {
       }
       raceStartTimeRef.current = performance.now() - (elapsedOffsetRef.current * 1000);
       setIsRunning(true);
+
+      if (!raceStartAnnouncedRef.current) {
+        raceStartAnnouncedRef.current = true;
+        const startComment = {
+          text: '🏁 Xuất phát rồi! Dàn tuyển thủ mèo lao đi như bão táp! Xem ai sẽ giở trò trước đây!',
+          audio: 'Xuất phát rồi! Dàn tuyển thủ mèo lao đi như bão táp!'
+        };
+        setCommentary({
+          text: startComment.text,
+          type: 'start',
+          icon: '🏁',
+          time: Date.now()
+        });
+        if (liveCasterVoiceEnabled && soundEnabled) {
+          setTimeout(() => {
+            speakCaster(startComment.audio, 2000);
+          }, 350);
+        }
+      }
     }
   };
 
@@ -891,6 +932,71 @@ export default function CatRaceTimer() {
       });
 
       // ======================================================================
+      // LEAD CHANGE & OVERTAKE DYNAMIC CASTER COMMENTARY
+      // ======================================================================
+      if (leadId && leadId !== prevLeaderIdRef.current) {
+        const oldLeaderId = prevLeaderIdRef.current;
+        prevLeaderIdRef.current = leadId;
+
+        // Trigger overtake commentary if race is actively running
+        if (oldLeaderId && progress > 0.12 && progress < 0.88) {
+          if (now - lastLeadChangeCommentTimeRef.current > 3200) {
+            lastLeadChangeCommentTimeRef.current = now;
+            const newLead = racers.find((r) => r.id === leadId);
+            const oldLead = racers.find((r) => r.id === oldLeaderId);
+            if (newLead && oldLead) {
+              const overtakes = [
+                {
+                  text: `🔥 Ôi bạn ${newLead.name} đã vượt lên dẫn đầu! Nhưng không, bạn ${oldLead.name} không cho phép, đang bám đuổi quyết liệt!`,
+                  audio: `Ôi bạn ${newLead.name} đã vượt lên dẫn đầu, nhưng không bạn ${oldLead.name} không cho phép, bạn ${newLead.name} đã nhanh hơn!`
+                },
+                {
+                  text: `⚡ Bất ngờ chưa! Bạn ${newLead.name} không cho phép! Bạn ${newLead.name} đã nhanh hơn bạn ${oldLead.name} một bước!`,
+                  audio: `Bất ngờ chưa, bạn ${newLead.name} không cho phép! Bạn ${newLead.name} đã nhanh hơn bạn ${oldLead.name}!`
+                },
+                {
+                  text: `🚀 Cú bứt tốc ngoạn mục! Bạn ${newLead.name} chính thức soán ngôi dẫn đầu của bạn ${oldLead.name}!`,
+                  audio: `Cú bứt tốc ngoạn mục, bạn ${newLead.name} chính thức soán ngôi của bạn ${oldLead.name}!`
+                },
+                {
+                  text: `👀 Trận chiến nghẹt thở! Bạn ${newLead.name} vừa vượt mặt bạn ${oldLead.name} trong gang tấc!`,
+                  audio: `Trận chiến nghẹt thở, bạn ${newLead.name} vừa vượt mặt bạn ${oldLead.name} trong gang tấc!`
+                }
+              ];
+              const chosen = overtakes[Math.floor(Math.random() * overtakes.length)];
+              setCommentary({
+                text: chosen.text,
+                type: 'overtake',
+                icon: '⚡',
+                time: now
+              });
+              if (liveCasterVoiceEnabled && soundEnabled) {
+                speakCaster(chosen.audio, 3600);
+              }
+            }
+          }
+        }
+      }
+
+      // ======================================================================
+      // FINAL SPRINT ANNOUNCEMENT (Những mét cuối cùng trước vạch đích)
+      // ======================================================================
+      if (!finalSprintAnnouncedRef.current && (progress >= 0.86 || (remainingSec !== null && remainingSec <= 5))) {
+        finalSprintAnnouncedRef.current = true;
+        const currentLead = racers.find((r) => r.id === leadId) || racers[0];
+        const sprintText = `🔥 Vạch đích ngay trước mắt! Bạn ${currentLead.name} đang băng băng lao về đích! Ai sẽ cản được đây?!`;
+        setCommentary({
+          text: sprintText,
+          type: 'sprint',
+          icon: '🏁',
+          time: now
+        });
+        if (liveCasterVoiceEnabled && soundEnabled) {
+          speakCaster(`Vạch đích ngay trước mắt! Bạn ${currentLead.name} đang lao về đích!`, 3400);
+        }
+      }
+
+      // ======================================================================
       // SLAPSTICK CHAOS & TROLL RACING ENGINE (Kicks, slips, turbos, bướm)
       // ======================================================================
       // 1. Clean up expired comic effects
@@ -947,12 +1053,34 @@ export default function CatRaceTimer() {
                 setTimeout(() => sound.playStartledMeow(), 160);
               }
 
+              const kickLines = [
+                {
+                  text: `💥 Trời đất ơi! Bạn ${kicker.name} vừa tung cước đá bay bạn ${victim.name}! Quá tàn nhẫn!`,
+                  audio: `Trời đất ơi bạn ${kicker.name} đá bạn ${victim.name}!`
+                },
+                {
+                  text: `😾 Một pha chơi xấu kinh điển! Bạn ${kicker.name} đạp văng bạn ${victim.name} sang làn bên cạnh!`,
+                  audio: `Một pha chơi xấu, bạn ${kicker.name} đạp văng bạn ${victim.name}!`
+                },
+                {
+                  text: `😱 Trời ơi là trời! Bạn ${kicker.name} đá bạn ${victim.name}! Trọng tài ở đâu rồi?!`,
+                  audio: `Trời ơi là trời bạn ${kicker.name} đá bạn ${victim.name}!`
+                },
+                {
+                  text: `🥋 Pha song phi tình bạn! Bạn ${kicker.name} tiễn bạn ${victim.name} hít khói một đoạn dài!`,
+                  audio: `Pha song phi tình bạn, bạn ${kicker.name} đá bạn ${victim.name}!`
+                }
+              ];
+              const chosenKick = kickLines[Math.floor(Math.random() * kickLines.length)];
               setCommentary({
-                text: `💥 ${kicker.name} tung cú đá song phi knock-out ${victim.name} để chiếm vị trí!`,
+                text: chosenKick.text,
                 type: 'kick',
                 icon: '💥',
                 time: now
               });
+              if (liveCasterVoiceEnabled && soundEnabled) {
+                speakCaster(chosenKick.audio, 3200);
+              }
             }
           } else if (roll < 0.70) {
             // EVENT B: TÉ LĂN QUAY TRƯỢT VỎ CHUỐI (BANANA SLIP TUMBLE)
@@ -971,12 +1099,34 @@ export default function CatRaceTimer() {
                 setTimeout(() => sound.playBoingSound(), 260);
               }
 
+              const slipLines = [
+                {
+                  text: `🍌 Bạn ${victim.name} đã bị đạp trúng vỏ chuối té lăn quay 720 độ!`,
+                  audio: `Bạn ${victim.name} đã bị té lăn quay các kiểu!`
+                },
+                {
+                  text: `😵 Pha tiếp đất bằng mông đỉnh cao! Bạn ${victim.name} té dập mặt rồi!`,
+                  audio: `Pha tiếp đất bằng mông, bạn ${victim.name} té dập mặt rồi!`
+                },
+                {
+                  text: `🍌 Bất ngờ chưa! Bạn ${victim.name} đang chạy bon bon thì trượt chân xoay như chong chóng!`,
+                  audio: `Bất ngờ chưa, bạn ${victim.name} té lăn đùng ra đường đua!`
+                },
+                {
+                  text: `🌀 Ôi bạn ${victim.name} ơi là bạn ${victim.name}! Đang ngon trớn tự nhiên té lăn đùng ra đó!`,
+                  audio: `Bạn ${victim.name} đã bị té lăn quay!`
+                }
+              ];
+              const chosenSlip = slipLines[Math.floor(Math.random() * slipLines.length)];
               setCommentary({
-                text: `🍌 Ôi trời ơi! ${victim.name} vừa đạp trúng vỏ chuối té lăn quay 3 vòng!`,
+                text: chosenSlip.text,
                 type: 'slip',
                 icon: '🍌',
                 time: now
               });
+              if (liveCasterVoiceEnabled && soundEnabled) {
+                speakCaster(chosenSlip.audio, 3200);
+              }
             }
           } else if (roll < 0.88) {
             // EVENT C: LON PATE CÁ HỒI SIÊU TỐC (TUNA CAN TURBO BOOST)
@@ -995,12 +1145,26 @@ export default function CatRaceTimer() {
               setTimeout(() => sound.playQuickMew('excited'), 200);
             }
 
+            const turboLines = [
+              {
+                text: `🐟 Ôi mẹ ơi! Bạn ${trailingRacer.name} vừa húp trọn lon Pate cá hồi, hóa tên lửa bứt phá!`,
+                audio: `Không thể tin được, bạn ${trailingRacer.name} bật tên lửa bứt tốc kinh hoàng!`
+              },
+              {
+                text: `🚀 Kinh hoàng! Bạn ${trailingRacer.name} bật phản lực pate siêu tốc, lao đi như một cơn gió!`,
+                audio: `Bạn ${trailingRacer.name} húp lon pate cá hồi bật phản lực bứt phá!`
+              }
+            ];
+            const chosenTurbo = turboLines[Math.floor(Math.random() * turboLines.length)];
             setCommentary({
-              text: `🐟 ${trailingRacer.name} húp trọn lon Pate cá hồi, hóa tên lửa bứt phá!`,
+              text: chosenTurbo.text,
               type: 'turbo',
               icon: '🚀',
               time: now
             });
+            if (liveCasterVoiceEnabled && soundEnabled) {
+              speakCaster(chosenTurbo.audio, 3200);
+            }
           } else {
             // EVENT D: BƯỚM ĐẬU MŨI ĐỨNG HÌNH (BUTTERFLY DISTRACTION)
             const rTarget = racers[Math.floor(Math.random() * racers.length)];
@@ -1013,12 +1177,26 @@ export default function CatRaceTimer() {
               sound.playBoingSound();
             }
 
+            const bfLines = [
+              {
+                text: `🦋 Trời đất ơi! Con bướm ở đâu bay tới đậu ngay sống mũi bạn ${rTarget.name}, đứng hình luôn!`,
+                audio: `Trời đất ơi con bướm đậu mũi bạn ${rTarget.name}, đứng hình luôn!`
+              },
+              {
+                text: `🌸 Đang đua căng thẳng mà bạn ${rTarget.name} lại dừng lại ngắm bướm bắt hoa, cạn lời thực sự!`,
+                audio: `Đang đua mà bạn ${rTarget.name} lại đứng ngắm bướm, cạn lời luôn!`
+              }
+            ];
+            const chosenBf = bfLines[Math.floor(Math.random() * bfLines.length)];
             setCommentary({
-              text: `🦋 ${rTarget.name} bị con bướm đậu lên mũi, đứng hình mất 1 giây!`,
+              text: chosenBf.text,
               type: 'distracted',
               icon: '🦋',
               time: now
             });
+            if (liveCasterVoiceEnabled && soundEnabled) {
+              speakCaster(chosenBf.audio, 3200);
+            }
           }
         }
       }
@@ -1046,12 +1224,13 @@ export default function CatRaceTimer() {
       isSubscribed = false;
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
-  }, [isRunning, totalSeconds, racers, soundEnabled]);
+  }, [isRunning, totalSeconds, racers, soundEnabled, liveCasterVoiceEnabled]);
 
   // Race Finish Ceremony
   const handleFinishRace = (finalSnapshotPositions = positions) => {
     if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     sound.stopRaceMusic();
+    speech.stop();
     setIsRunning(false);
     setIsFinished(true);
     setRemainingSeconds(0);
@@ -1081,6 +1260,13 @@ export default function CatRaceTimer() {
     setWinner(winningCat);
     setRankings(finalRankings);
     setFirstCrossedId(winningCat.id);
+
+    setCommentary({
+      text: `🏆 VÔ ĐỊCH: Mèo số ${winningCat.number} (${winningCat.name}) đã xuất sắc cán đích đầu tiên và giành chiến thắng!`,
+      type: 'winner',
+      icon: '🏆',
+      time: Date.now()
+    });
 
     // Arrange final positions:
     // Racers that crossed line are placed in victory zone (> 100%):
@@ -1118,7 +1304,7 @@ export default function CatRaceTimer() {
     if (voiceAnnounceEnabled) {
       setTimeout(() => {
         speech.speakVietnamese(
-          `Chúc mừng Mèo số ${winningCat.number}, ${winningCat.name} đã chạy qua vạch đích nhanh nhất và giành chiến thắng!`
+          `Chúc mừng Mèo số ${winningCat.number}, bạn ${winningCat.name} đã chạy qua vạch đích nhanh nhất và giành chiến thắng!`
         );
       }, 700);
     }
@@ -1795,6 +1981,37 @@ export default function CatRaceTimer() {
                       className="w-4 h-4 text-emerald-600 rounded"
                     />
                   </label>
+
+                  <div className="flex items-center justify-between p-2.5 rounded-xl hover:bg-stone-50 border border-stone-200/60">
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-stone-700 text-xs sm:text-sm">🎙️ Giọng Bình Luận Viên Trực Tiếp (Chị Google BLV):</span>
+                        <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 text-[10px] font-black uppercase">
+                          🔥 Hài hước & Kịch tính
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-stone-500 block mt-0.5">
+                        BLV trực tiếp xướng tên khi mèo đá nhau, té vỏ chuối, bứt tốc soán ngôi đầu!
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => speech.speakVietnamese("Trời đất ơi bạn Ánh đá bạn Vi! Nhưng không bạn Bình không cho phép, bạn Bình đã nhanh hơn! Bạn Ánh đã bị té lăn quay các kiểu!")}
+                        className="px-2.5 py-1 text-[11px] font-bold bg-amber-100 text-amber-800 hover:bg-amber-200 rounded-lg flex items-center gap-1 transition"
+                        title="Nghe thử giọng BLV Chị Google"
+                      >
+                        <Volume2 className="w-3.5 h-3.5" />
+                        Nghe thử BLV
+                      </button>
+                      <input
+                        type="checkbox"
+                        checked={liveCasterVoiceEnabled}
+                        onChange={(e) => setLiveCasterVoiceEnabled(e.target.checked)}
+                        className="w-4 h-4 text-emerald-600 rounded"
+                      />
+                    </div>
+                  </div>
 
                   <div className="flex items-center justify-between p-2.5 rounded-xl hover:bg-stone-50 border border-stone-200/60">
                     <div>
