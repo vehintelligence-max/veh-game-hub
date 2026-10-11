@@ -203,4 +203,26 @@
   100% { transform: rotate(360deg); }
 }
 
+@keyframes snowFall {
+  0% {
+    transform: translateY(-20px) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.85;
+  }
+  85% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateY(680px) translateX(25px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes fairyLightBlink {
+  0%, 100% { opacity: 1; filter: drop-shadow(0 0 6px currentColor); }
+  50% { opacity: 0.45; filter: none; }
+}
+
 

@@ -258,8 +258,9 @@ export default function Navbar({
         <div className="flex items-center gap-1.5 min-w-max">
           {[
             { id: 'arena', label: 'Đấu Trường (Kahoot)', icon: Monitor },
-            { id: 'catrace', label: '🐱 Đua Mèo (Cat Race)', icon: Clock, isHot: true },
-            { id: 'curriculum', label: 'Kho Học Liệu V House', icon: Layers, isNew: true },
+            { id: 'catrace', label: '🐱 Đua Mèo & Trí Tuệ (Cat IQ Race)', icon: Clock, isHot: true },
+            { id: 'kidsarcade', label: '🧩 Xếp Chữ & Trí Nhớ (Kids Arcade)', icon: Sparkles, isNew: true },
+            { id: 'curriculum', label: 'Kho Học Liệu V House', icon: Layers },
             { id: 'dictation', label: 'Chép Chính Tả (YouTube)', icon: Headphones },
             { id: 'tictac', label: 'Cờ Ca-Rô (TicTac)', icon: Gamepad2 },
             { id: 'hangman', label: 'Đoán Từ (Hangman)', icon: HelpCircle },

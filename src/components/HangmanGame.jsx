@@ -268,11 +268,11 @@ export default function HangmanGame({ quiz, quizzes = [], onSelectQuiz, onOpenAI
     if (isWon) {
       sound.playFanfare();
       confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
-      speech.speakVietnamese(`Tuyệt vời! Bạn đã cứu sống người que và đoán đúng từ: ${targetWord}!`);
+      speech.speakEnglish(`Awesome job! You solved the puzzle and guessed the word: ${targetWord}!`);
       setScore((s) => s + 100);
     } else if (isLost) {
       sound.playWrong();
-      speech.speakVietnamese(`Ôi không! Người que đã bị treo cổ vì bạn đoán sai 6 lần! Từ vựng chính xác là: ${targetWord}!`);
+      speech.speakEnglish(`Game over! The correct word was: ${targetWord}! Better luck next time!`);
     }
   }, [isWon, isLost]);
 

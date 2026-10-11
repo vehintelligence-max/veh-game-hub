@@ -172,6 +172,36 @@ export const sound = {
     osc.stop(ctx.currentTime + 0.05);
   },
 
+  playChristmasTick() {
+    if (isMuted) return;
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const t = ctx.currentTime;
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    // Silver bell sparkle chime
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(2093, t); // C7
+
+    osc2.type = 'triangle';
+    osc2.frequency.setValueAtTime(4186, t); // C8 harmonic
+
+    gain.gain.setValueAtTime(0.13, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc1.start(t);
+    osc2.start(t);
+    osc1.stop(t + 0.07);
+    osc2.stop(t + 0.07);
+  },
+
   playUrgentTick() {
     if (isMuted) return;
     const ctx = getAudioContext();
@@ -681,5 +711,71 @@ export const sound = {
     }
     raceMusicStep = 0;
     isUrgentRace = false;
+  },
+
+  playJingleBells() {
+    if (isMuted) return;
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+
+    const notes = [
+      { freq: 659.25, time: 0.00, dur: 0.14 },
+      { freq: 659.25, time: 0.16, dur: 0.14 },
+      { freq: 659.25, time: 0.32, dur: 0.28 },
+      { freq: 659.25, time: 0.64, dur: 0.14 },
+      { freq: 659.25, time: 0.80, dur: 0.14 },
+      { freq: 659.25, time: 0.96, dur: 0.28 },
+      { freq: 659.25, time: 1.28, dur: 0.14 },
+      { freq: 783.99, time: 1.44, dur: 0.14 },
+      { freq: 523.25, time: 1.60, dur: 0.16 },
+      { freq: 587.33, time: 1.78, dur: 0.14 },
+      { freq: 659.25, time: 1.94, dur: 0.45 },
+    ];
+
+    notes.forEach((n) => {
+      const t = now + n.time;
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(n.freq, t);
+
+      osc2.type = 'triangle';
+      osc2.frequency.setValueAtTime(n.freq * 2.76, t);
+
+      gain.gain.setValueAtTime(0.24, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + n.dur);
+
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc1.start(t);
+      osc2.start(t);
+      osc1.stop(t + n.dur);
+      osc2.stop(t + n.dur);
+    });
+  },
+
+  playSleighBells() {
+    if (isMuted) return;
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    [0, 0.07, 0.14, 0.21].forEach((offset) => {
+      const t = now + offset;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1318.5, t);
+      gain.gain.setValueAtTime(0.18, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.09);
+    });
   }
 };

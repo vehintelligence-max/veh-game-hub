@@ -88,8 +88,25 @@ export default function SideDrawer({ isOpen, onClose, mainTab, setMainTab }) {
               <div className="w-7 h-7 rounded-lg bg-black/20 flex items-center justify-center">
                 <Clock className="w-4 h-4 text-[#FFC600]" />
               </div>
-              <span className="flex-1 text-left">Đua Mèo (Cat Race Timer)</span>
+              <span className="flex-1 text-left">Đua Mèo & Trí Tuệ (Cat IQ Race)</span>
               <span className="text-[9px] bg-[#FFC600] text-[#1F2421] font-black px-1.5 py-0.5 rounded">HOT</span>
+            </button>
+
+            {/* Kids Arcade: Word Scramble & What's Missing */}
+            <button
+              type="button"
+              onClick={() => handleSelectTab('kidsarcade')}
+              className={`w-full px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-3 transition ${
+                mainTab === 'kidsarcade'
+                  ? 'bg-vhouse-gold text-vhouse-dark shadow-duo-yellow font-black'
+                  : 'text-gray-300 hover:bg-gray-800/80 hover:text-white'
+              }`}
+            >
+              <div className="w-7 h-7 rounded-lg bg-black/20 flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-amber-400" />
+              </div>
+              <span className="flex-1 text-left">Xếp Chữ & Trí Nhớ (Kids Arcade)</span>
+              <span className="text-[9px] bg-rose-500 text-white font-black px-1.5 py-0.5 rounded">MỚI</span>
             </button>
 
             <button

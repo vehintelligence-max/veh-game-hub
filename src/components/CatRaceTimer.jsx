@@ -3,7 +3,8 @@ import {
   Settings, Music, Bell, Play, Pause, RotateCcw, Volume2, VolumeX,
   Maximize2, Minimize2, Trophy, Sparkles, Flag, Plus, Minus, Trash2,
   Check, X, Users, RefreshCw, FileText, ArrowRight, Zap, Edit3,
-  Bookmark, Save, Flame, Shuffle
+  Bookmark, Save, Flame, Shuffle, Brain, HelpCircle, CheckCircle2,
+  XCircle, BookOpen, Award, Compass, Clock, ChevronUp, ChevronDown
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { sound } from '../utils/sound';
@@ -146,9 +147,433 @@ const FUNNY_CAT_NAMES = [
 ];
 
 // ============================================================================
+// CHRISTMAS SPECIAL: REINDEER MOUNT WITH CAT RIDER (MÈO CƯỠI TUẦN LỘC NOEL)
+// ============================================================================
+function ReindeerRiderCat({ racer, isRunning, isWinner, isLeader, effect }) {
+  const handleCatClick = () => {
+    sound.playSleighBells();
+    const variants = ['excited', 'kitten', 'default', 'deep'];
+    sound.playMeow(variants[(racer.number - 1) % 4]);
+  };
+
+  const isTumbled = effect?.type === 'tumbled';
+  const isKicking = effect?.type === 'kicking';
+  const isStumbled = effect?.type === 'stumbled';
+  const isTurbo = effect?.type === 'turbo';
+  const isDistracted = effect?.type === 'distracted';
+
+  return (
+    <div
+      onClick={handleCatClick}
+      className="relative flex items-center justify-center select-none cursor-pointer group active:scale-95 transition-transform"
+      title={`Nhấn vào ${racer.name} cưỡi tuần lộc để nghe tiếng chuông Giáng Sinh & tiếng mèo!`}
+    >
+      {/* 1. Snowflakes & ice sparkle puffs kicking up behind reindeer hooves */}
+      {isRunning && !isTumbled && (
+        <div className="absolute -left-9 bottom-2 flex gap-1 pointer-events-none select-none z-10 text-xs">
+          <span className="inline-block animate-[dustPuff_0.35s_ease-out_infinite]">❄️</span>
+          <span className="inline-block animate-[dustPuff_0.42s_ease-out_infinite_0.08s]">✨</span>
+          <span className="inline-block animate-[dustPuff_0.38s_ease-out_infinite_0.16s]">🌨️</span>
+        </div>
+      )}
+
+      {/* Turbo: Santa Magic Rocket Sleigh Boost with colorful stars */}
+      {isTurbo && (
+        <div className="absolute -left-14 bottom-1 flex items-center gap-0.5 pointer-events-none z-20 text-lg animate-pulse">
+          <span>🌟</span>
+          <span>🎄</span>
+          <span>🚀</span>
+          <span>✨</span>
+        </div>
+      )}
+
+      {/* Slipped on Ice patch instead of banana peel */}
+      {isTumbled && (
+        <div className="absolute -bottom-3 left-4 text-2xl pointer-events-none z-30 animate-bounce">
+          🧊
+        </div>
+      )}
+
+      {/* Spinning Dizzy Stars when tumbled */}
+      {(isTumbled || isStumbled) && (
+        <div className="absolute -top-7 z-40 text-sm font-black animate-[spinDizzyStars_0.9s_linear_infinite] pointer-events-none drop-shadow">
+          ❄️ 💫 ❄️
+        </div>
+      )}
+
+      {/* Distracted: Tiny Christmas Gift or Bauble */}
+      {isDistracted && (
+        <div className="absolute -top-7 right-2 text-xl z-40 animate-bounce pointer-events-none">
+          🎁
+        </div>
+      )}
+
+      {/* SLAPSTICK COMIC ACTION POP BUBBLE */}
+      {effect && (
+        <div
+          className={`absolute -top-7 sm:-top-8 z-40 font-black text-[9px] sm:text-[10px] px-2.5 py-0.5 rounded-full shadow-lg border whitespace-nowrap animate-[comicPop_0.3s_cubic-bezier(0.34,1.56,0.64,1)] ${
+            isKicking
+              ? 'bg-rose-600 text-white border-yellow-300 animate-[catSideKick_0.5s_infinite]'
+              : isTumbled
+              ? 'bg-cyan-500 text-stone-900 border-white'
+              : isStumbled
+              ? 'bg-orange-600 text-white border-white animate-pulse'
+              : isTurbo
+              ? 'bg-emerald-600 text-white border-yellow-300'
+              : 'bg-purple-600 text-white border-white'
+          }`}
+        >
+          {effect.type === 'tumbled'
+            ? '🧊 TRƯỢT TẢNG BĂNG (-5m)'
+            : effect.type === 'kicking'
+            ? `🦌🦶 ${racer.name} HÚC GẠC NAI!`
+            : effect.label || effect.type}
+        </div>
+      )}
+
+      {/* Kicking / Antler Clash icon */}
+      {isKicking && (
+        <div
+          className={`absolute z-35 font-black text-2xl sm:text-3xl pointer-events-none animate-bounce ${
+            effect?.direction === 'down' ? 'top-10 -right-2 rotate-45' : '-top-8 -right-2 -rotate-45'
+          }`}
+        >
+          🦌💥
+        </div>
+      )}
+
+      {/* Leading Golden Star / Christmas Crown */}
+      {isLeader && isRunning && !effect && (
+        <div className="absolute -top-5 right-6 z-30 animate-bounce text-sm font-black drop-shadow">
+          🌟
+        </div>
+      )}
+
+      {/* SVG REINDEER MOUNT WITH CAT RIDER */}
+      <svg
+        viewBox="0 0 132 94"
+        className={`w-auto h-11 sm:h-13 md:h-15 max-h-[85%] max-w-[125px] drop-shadow-md transition-transform ${
+          isWinner ? 'scale-110 drop-shadow-xl' : ''
+        }`}
+        style={{
+          transform: isTumbled
+            ? 'rotate(720deg) scale(0.88)'
+            : isKicking
+            ? 'rotate(-14deg) scale(1.15) translateX(8px)'
+            : isStumbled
+            ? 'rotate(14deg) translateX(-10px)'
+            : 'none',
+          transition: isTumbled
+            ? 'transform 1.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
+            : isKicking || isStumbled
+            ? 'transform 0.25s ease-out'
+            : 'transform 0.2s ease-out'
+        }}
+      >
+        <defs>
+          <linearGradient id={`reindeerFur_${racer.id}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#A05A2C" />
+            <stop offset="100%" stopColor="#783E1A" />
+          </linearGradient>
+          <linearGradient id={`catFurGrad_${racer.id}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={racer.furColor} />
+            <stop offset="100%" stopColor={racer.stripeColor || racer.furColor} />
+          </linearGradient>
+          <radialGradient id="rudolphGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#FF4D4D" />
+            <stop offset="60%" stopColor="#DC2626" />
+            <stop offset="100%" stopColor="#991B1B" />
+          </radialGradient>
+        </defs>
+
+        {/* Snowy Shadow on the Ice Track */}
+        <ellipse cx="66" cy="88" rx="44" ry="5.5" fill="rgba(2, 44, 84, 0.35)" />
+
+        {/* GALLOPING GROUP (60FPS FLUID MOTION) */}
+        <g
+          style={{
+            transformOrigin: '66px 58px',
+            animation: isRunning ? 'catGallop 0.28s ease-in-out infinite' : 'none'
+          }}
+        >
+          {/* 1. REINDEER TAIL */}
+          <path
+            d="M 28 50 Q 18 46 22 40 Q 30 44 32 50 Z"
+            fill="#A05A2C"
+            stroke="#3B1D0E"
+            strokeWidth="2.2"
+          />
+          <path d="M 22 44 Q 24 41 28 44" fill="#F5E6CC" />
+
+          {/* 2. REINDEER REAR LEGS */}
+          {/* Rear Left Leg */}
+          <g
+            style={{
+              transformOrigin: '38px 56px',
+              animation: isRunning ? 'catPawKickBack2 0.28s ease-in-out infinite' : 'none'
+            }}
+          >
+            <path d="M 38 54 Q 28 66 32 78" stroke="#783E1A" strokeWidth="6" strokeLinecap="round" />
+            <rect x="29" y="77" width="8" height="6" rx="2" fill="#2B1810" stroke="#1A0D08" strokeWidth="1.5" />
+          </g>
+
+          {/* Rear Right Leg */}
+          <g
+            style={{
+              transformOrigin: '48px 58px',
+              animation: isRunning ? 'catPawKickBack1 0.28s ease-in-out infinite' : 'none'
+            }}
+          >
+            <path d="M 48 56 Q 38 68 42 80" stroke="#A05A2C" strokeWidth="6.5" strokeLinecap="round" />
+            <rect x="39" y="79" width="8" height="6" rx="2" fill="#2B1810" stroke="#1A0D08" strokeWidth="1.5" />
+          </g>
+
+          {/* 3. REINDEER BODY */}
+          <ellipse
+            cx="66"
+            cy="54"
+            rx="36"
+            ry="20"
+            fill={`url(#reindeerFur_${racer.id})`}
+            stroke="#3B1D0E"
+            strokeWidth="2.6"
+          />
+
+          {/* Soft Cream Chest & Underbelly Accent */}
+          <ellipse cx="78" cy="58" rx="16" ry="12" fill="#F5E6CC" opacity="0.9" />
+
+          {/* White Fawn Dapples */}
+          <circle cx="50" cy="46" r="1.8" fill="#FFFFFF" opacity="0.75" />
+          <circle cx="56" cy="42" r="1.6" fill="#FFFFFF" opacity="0.75" />
+          <circle cx="62" cy="47" r="1.7" fill="#FFFFFF" opacity="0.75" />
+          <circle cx="70" cy="44" r="1.5" fill="#FFFFFF" opacity="0.75" />
+
+          {/* 4. FESTIVE CHRISTMAS SADDLE & RACER NUMBER BIB */}
+          <path
+            d="M 46 42 Q 62 44 76 42 L 78 58 Q 62 61 44 58 Z"
+            fill="#DC2626"
+            stroke="#FFD700"
+            strokeWidth="2.2"
+          />
+          <path
+            d="M 44 58 Q 62 61 78 58"
+            stroke="#FBBF24"
+            strokeWidth="2"
+            strokeDasharray="3 3"
+            fill="none"
+          />
+          <circle cx="61" cy="50" r="8" fill="#FFFFFF" stroke="#3B1D0E" strokeWidth="1.8" />
+          <text
+            x="61"
+            y="54"
+            textAnchor="middle"
+            fontSize="11"
+            fontWeight="900"
+            fill="#1E293B"
+            fontFamily="Arial Black, Impact, sans-serif"
+          >
+            {racer.number}
+          </text>
+
+          {/* 5. REINDEER FRONT LEGS & HOOVES */}
+          {/* Front Left Leg */}
+          <g
+            style={{
+              transformOrigin: '84px 58px',
+              animation: isRunning ? 'catPawPaddleFront2 0.28s ease-in-out infinite' : 'none'
+            }}
+          >
+            <path d="M 82 56 Q 90 68 96 79" stroke="#783E1A" strokeWidth="5.5" strokeLinecap="round" />
+            <rect x="94" y="78" width="8" height="6" rx="2" fill="#2B1810" stroke="#1A0D08" strokeWidth="1.5" />
+          </g>
+
+          {/* Front Right Leg */}
+          <g
+            style={{
+              transformOrigin: '92px 60px',
+              animation: isRunning ? 'catPawPaddleFront1 0.28s ease-in-out infinite' : 'none'
+            }}
+          >
+            <path d="M 90 58 Q 100 69 108 81" stroke="#A05A2C" strokeWidth="6" strokeLinecap="round" />
+            <rect x="106" y="80" width="8" height="6" rx="2" fill="#2B1810" stroke="#1A0D08" strokeWidth="1.5" />
+          </g>
+
+          {/* 6. REINDEER NECK, JINGLE BELL HARNESS & HEAD */}
+          <path
+            d="M 80 52 L 96 32 L 108 38 L 94 58 Z"
+            fill={`url(#reindeerFur_${racer.id})`}
+            stroke="#3B1D0E"
+            strokeWidth="2.2"
+          />
+
+          {/* Red Festive Neck Collar with Golden Bells */}
+          <path
+            d="M 88 42 L 102 48"
+            stroke="#DC2626"
+            strokeWidth="5"
+            strokeLinecap="round"
+          />
+          {/* Jingle Bell */}
+          <circle cx="95" cy="45" r="4.2" fill="#FFD700" stroke="#B45309" strokeWidth="1.5" />
+          <line x1="93" y1="46" x2="97" y2="46" stroke="#92400E" strokeWidth="1.2" />
+          <circle cx="95" cy="47" r="0.8" fill="#78350F" />
+
+          {/* Reindeer Head */}
+          <ellipse
+            cx="106"
+            cy="31"
+            rx="14"
+            ry="11"
+            fill={`url(#reindeerFur_${racer.id})`}
+            stroke="#3B1D0E"
+            strokeWidth="2.5"
+          />
+          <ellipse cx="116" cy="34" rx="8" ry="6.5" fill="#F5E6CC" stroke="#3B1D0E" strokeWidth="1.8" />
+
+          {/* Rudolph's Glowing Red Nose */}
+          <circle
+            cx="122"
+            cy="33"
+            r="4.5"
+            fill="url(#rudolphGlow)"
+            stroke="#DC2626"
+            strokeWidth="1.5"
+            className="animate-pulse"
+          />
+          <circle cx="120.5" cy="31.5" r="1.3" fill="#FFFFFF" />
+
+          {/* Eye */}
+          <ellipse cx="107" cy="27" rx="3.2" ry="4.2" fill="#1F2421" />
+          <circle cx="108" cy="25.5" r="1.4" fill="#FFFFFF" />
+          <circle cx="106" cy="29" r="0.7" fill="#FFFFFF" />
+
+          {/* Ears */}
+          <path
+            d="M 98 25 Q 90 20 88 15 Q 96 16 100 23 Z"
+            fill="#A05A2C"
+            stroke="#3B1D0E"
+            strokeWidth="2"
+          />
+          <path d="M 92 19 Q 95 18 97 22" stroke="#FCA5A5" strokeWidth="1.5" fill="none" />
+
+          {/* 7. MAJESTIC ANTLERS */}
+          <path
+            d="M 100 22 Q 96 12 92 4 M 94 13 Q 87 10 84 8 M 92 8 Q 86 4 84 1"
+            stroke="#5C3317"
+            strokeWidth="3.2"
+            strokeLinecap="round"
+            fill="none"
+          />
+          <path
+            d="M 104 22 Q 106 10 110 2 M 106 14 Q 114 11 118 9 M 108 8 Q 116 5 118 2"
+            stroke="#783E1A"
+            strokeWidth="3.5"
+            strokeLinecap="round"
+            fill="none"
+          />
+          <circle cx="110" cy="2" r="2.2" fill="#FBBF24" stroke="#D97706" strokeWidth="0.8" />
+          <circle cx="92" cy="4" r="1.6" fill="#FFFFFF" />
+
+          {/* 8. GOLDEN REINS */}
+          <path
+            d="M 64 26 Q 82 28 100 37"
+            stroke="#F59E0B"
+            strokeWidth="2.2"
+            fill="none"
+            strokeDasharray="5 1"
+          />
+
+          {/* 9. THE CAT RIDER */}
+          {/* Cat Tail */}
+          <path
+            d="M 46 28 Q 36 20 38 10 Q 44 18 48 24 Z"
+            fill={`url(#catFurGrad_${racer.id})`}
+            stroke="#1F2421"
+            strokeWidth="2.2"
+          />
+
+          {/* Cat Body */}
+          <ellipse
+            cx="55"
+            cy="27"
+            rx="14"
+            ry="11"
+            fill={`url(#catFurGrad_${racer.id})`}
+            stroke="#1F2421"
+            strokeWidth="2.4"
+          />
+          <ellipse cx="58" cy="28" rx="8" ry="6" fill={racer.accentColor} />
+
+          {/* Cat Head */}
+          <circle
+            cx="60"
+            cy="15"
+            r="12.5"
+            fill={`url(#catFurGrad_${racer.id})`}
+            stroke="#1F2421"
+            strokeWidth="2.4"
+          />
+
+          {/* Cat Ears */}
+          <polygon points="50,9 53,0 59,7" fill={racer.furColor} stroke="#1F2421" strokeWidth="2" strokeLinejoin="round" />
+          <polygon points="52,8 54,2 57,6" fill="#FCA5A5" />
+          <polygon points="62,7 67,0 70,9" fill={racer.furColor} stroke="#1F2421" strokeWidth="2" strokeLinejoin="round" />
+          <polygon points="63,6 66,2 68,8" fill="#FCA5A5" />
+
+          {/* Cat Whiskers & Nose */}
+          <circle cx="64" cy="18" r="1.5" fill="#F43F5E" />
+          <line x1="64" y1="17" x2="73" y2="15" stroke="#1F2421" strokeWidth="1.2" strokeLinecap="round" />
+          <line x1="64" y1="19" x2="73" y2="20" stroke="#1F2421" strokeWidth="1.2" strokeLinecap="round" />
+
+          {/* Cat Eye */}
+          <ellipse cx="63" cy="13" rx="2.5" ry="3.5" fill="#1F2421" />
+          <circle cx="64" cy="11.8" r="1.1" fill="#FFFFFF" />
+
+          {/* Cat Paws holding reins */}
+          <ellipse cx="64" cy="26" rx="4" ry="3.2" fill={racer.furColor} stroke="#1F2421" strokeWidth="1.8" />
+          <circle cx="65.5" cy="26" r="0.9" fill="#FCA5A5" />
+          <circle cx="63.5" cy="26.5" r="0.9" fill="#FCA5A5" />
+
+          {/* 10. ADORABLE SANTA HAT */}
+          <path
+            d="M 52 8 Q 58 -5 68 3 Q 62 8 58 7 Z"
+            fill="#DC2626"
+            stroke="#991B1B"
+            strokeWidth="1.8"
+          />
+          <rect
+            x="50"
+            y="6"
+            width="17"
+            height="5"
+            rx="2.5"
+            fill="#FFFFFF"
+            stroke="#E2E8F0"
+            strokeWidth="1"
+          />
+          <circle cx="69" cy="4" r="3.2" fill="#FFFFFF" stroke="#E2E8F0" strokeWidth="1" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+// ============================================================================
 // SVG ATHLETIC RUNNING CAT (Galloping on the Track with Slapstick Stunts)
 // ============================================================================
-function RunningCat({ racer, isRunning, isWinner, isLeader, effect }) {
+function RunningCat({ racer, isRunning, isWinner, isLeader, effect, trackTheme = 'christmas' }) {
+  if (trackTheme === 'christmas') {
+    return (
+      <ReindeerRiderCat
+        racer={racer}
+        isRunning={isRunning}
+        isWinner={isWinner}
+        isLeader={isLeader}
+        effect={effect}
+      />
+    );
+  }
+
   const handleCatClick = () => {
     const variants = ['excited', 'kitten', 'default', 'deep'];
     sound.playMeow(variants[(racer.number - 1) % 4]);
@@ -208,7 +633,7 @@ function RunningCat({ racer, isRunning, isWinner, isLeader, effect }) {
       {/* SLAPSTICK COMIC ACTION POP BUBBLE */}
       {effect && (
         <div
-          className={`absolute -top-9 z-40 font-black text-[11px] px-3 py-1 rounded-full shadow-2xl border-2 whitespace-nowrap animate-[comicPop_0.3s_cubic-bezier(0.34,1.56,0.64,1)] ${
+          className={`absolute -top-7 sm:-top-8 z-40 font-black text-[9px] sm:text-[10px] px-2.5 py-0.5 rounded-full shadow-lg border whitespace-nowrap animate-[comicPop_0.3s_cubic-bezier(0.34,1.56,0.64,1)] ${
             isKicking
               ? 'bg-rose-600 text-white border-yellow-300 animate-[catSideKick_0.5s_infinite]'
               : isTumbled
@@ -252,8 +677,8 @@ function RunningCat({ racer, isRunning, isWinner, isLeader, effect }) {
       {/* 3. The Running Cat Actor SVG with Dynamic Slapstick Body Style */}
       <svg
         viewBox="0 0 120 86"
-        className={`w-24 h-16 sm:w-28 sm:h-20 drop-shadow-md transition-transform ${
-          isWinner ? 'scale-115 drop-shadow-2xl' : ''
+        className={`w-auto h-10 sm:h-12 md:h-14 max-h-[85%] max-w-[110px] drop-shadow-md transition-transform ${
+          isWinner ? 'scale-110 drop-shadow-xl' : ''
         }`}
         style={{
           transform: isTumbled
@@ -470,9 +895,151 @@ function RunningCat({ racer, isRunning, isWinner, isLeader, effect }) {
 }
 
 // ============================================================================
-// MAIN COMPONENT: CAT RACE TRACK STOPWATCH (UNLIMITED RACERS ON ATHLETIC TRACK)
+// CUỘC ĐUA TRÍ TUỆ (CAT IQ CHECKPOINT RACE) - TRẠM KIỂM TRA KIẾN THỨC
 // ============================================================================
-export default function CatRaceTimer() {
+export const IQ_CHECKPOINTS_STADIUM = [
+  { id: 1, pos: 28, name: 'Trạm 1: Khởi Động', subtitle: 'Warm-Up Station', icon: '🚩', color: 'from-blue-600 to-indigo-600', badgeColor: 'bg-blue-600 text-white' },
+  { id: 2, pos: 58, name: 'Trạm 2: Tăng Tốc', subtitle: 'Speed-Up Station', icon: '⚡', color: 'from-amber-500 to-orange-600', badgeColor: 'bg-amber-600 text-white' },
+  { id: 3, pos: 84, name: 'Trạm 3: Bứt Phá Vàng', subtitle: 'Golden Challenge', icon: '🔥', color: 'from-rose-600 to-red-600', badgeColor: 'bg-rose-600 text-white' },
+];
+
+export const IQ_CHECKPOINTS_CHRISTMAS = [
+  { id: 1, pos: 28, name: 'Trạm 1: Nhà Bánh Gừng', subtitle: 'Gingerbread Cottage', icon: '🏠', color: 'from-amber-600 to-orange-600', badgeColor: 'bg-amber-700 text-white' },
+  { id: 2, pos: 58, name: 'Trạm 2: Xưởng Quà Santa', subtitle: "Santa's Workshop", icon: '🎁', color: 'from-red-600 to-rose-600', badgeColor: 'bg-red-600 text-white' },
+  { id: 3, pos: 84, name: 'Trạm 3: Cung Điện Băng', subtitle: 'Golden Ice Palace', icon: '❄️', color: 'from-cyan-600 to-blue-600', badgeColor: 'bg-cyan-600 text-white' },
+];
+
+export const IQ_CHECKPOINTS = IQ_CHECKPOINTS_CHRISTMAS;
+
+export const FUN_IQ_QUESTIONS = [
+  {
+    id: 'iq_q_xmas1',
+    text: 'Đố vui Giáng Sinh: Who pulls Santa Claus\'s flying sleigh on Christmas Eve?',
+    options: [
+      { text: 'Reindeer (Tuần Lộc)', isCorrect: true },
+      { text: 'Horses (Ngựa)', isCorrect: false },
+      { text: 'Eagles (Đại bàng)', isCorrect: false },
+      { text: 'Polar Bears (Gấu Bắc Cực)', isCorrect: false },
+    ],
+    explanation: '💡 Chú tuần lộc Rudolph mũi đỏ và đàn tuần lộc bay là người kéo cỗ xe trượt tuyết nhiệm màu cho ông già Noel!',
+  },
+  {
+    id: 'iq_q_xmas2',
+    text: 'Từ vựng Giáng Sinh: What sweet candy shaped like a walking stick is popular at Christmas?',
+    options: [
+      { text: 'Candy cane (Kẹo cây gậy)', isCorrect: true },
+      { text: 'Gingerbread man (Người bánh gừng)', isCorrect: false },
+      { text: 'Marshmallow (Kẹo dẻo)', isCorrect: false },
+      { text: 'Chocolate coin (Đồng xu socola)', isCorrect: false },
+    ],
+    explanation: '💡 "Candy cane" là kẹo cây gậy sọc đỏ trắng truyền thống của mùa lễ Giáng Sinh!',
+  },
+  {
+    id: 'iq_q1',
+    text: 'Chọn từ đúng: She made a remarkable _______ to the environmental project.',
+    options: [
+      { text: 'contribution', isCorrect: true },
+      { text: 'contribute', isCorrect: false },
+      { text: 'contributory', isCorrect: false },
+      { text: 'contributed', isCorrect: false },
+    ],
+    explanation: '💡 "make a contribution to" là cụm collocation chuẩn: có đóng góp quan trọng cho điều gì.',
+  },
+  {
+    id: 'iq_q2',
+    text: 'Thành ngữ: "Hit the nail on the head" có nghĩa là gì?',
+    options: [
+      { text: 'Nói trúng phóc, hoàn toàn chính xác', isCorrect: true },
+      { text: 'Gặp chấn thương ở đầu', isCorrect: false },
+      { text: 'Đóng đinh vào tường cẩn thận', isCorrect: false },
+      { text: 'Làm việc gì đó rất vụng về', isCorrect: false },
+    ],
+    explanation: '💡 "Hit the nail on the head" = nói đúng tim đen, nói hoàn toàn chính xác điểm mấu chốt.',
+  },
+  {
+    id: 'iq_q3',
+    text: 'Chọn từ nối: _______ he was exhausted, he finished his IELTS essay on time.',
+    options: [
+      { text: 'Although', isCorrect: true },
+      { text: 'Despite', isCorrect: false },
+      { text: 'Because', isCorrect: false },
+      { text: 'However', isCorrect: false },
+    ],
+    explanation: '💡 "Although + mệnh đề (S + V)" diễn tả sự tương phản: Dù anh ấy kiệt sức, anh ấy vẫn nộp bài đúng hạn.',
+  },
+  {
+    id: 'iq_q4',
+    text: 'Từ đồng nghĩa: Từ nào đồng nghĩa với "DELIGHTED"?',
+    options: [
+      { text: 'Extremely happy', isCorrect: true },
+      { text: 'Very angry', isCorrect: false },
+      { text: 'Deeply confused', isCorrect: false },
+      { text: 'Quite exhausted', isCorrect: false },
+    ],
+    explanation: '💡 "Delighted" = cực kỳ vui mừng, hài lòng (extremely pleased / happy).',
+  },
+  {
+    id: 'iq_q5',
+    text: 'Thì động từ: By the time the teacher arrived, the students _______ their assignment.',
+    options: [
+      { text: 'had completed', isCorrect: true },
+      { text: 'completed', isCorrect: false },
+      { text: 'have completed', isCorrect: false },
+      { text: 'will complete', isCorrect: false },
+    ],
+    explanation: '💡 Hành động hoàn thành bài tập xảy ra TRƯỚC một thời điểm trong quá khứ, dùng Quá khứ hoàn thành (had + V3).',
+  },
+  {
+    id: 'iq_q6',
+    text: 'Đố vui tiếng Anh: What has keys but cannot open any locks?',
+    options: [
+      { text: 'A piano', isCorrect: true },
+      { text: 'A door', isCorrect: false },
+      { text: 'A treasure chest', isCorrect: false },
+      { text: 'A laptop bag', isCorrect: false },
+    ],
+    explanation: '💡 "A piano" có rất nhiều phím đàn (piano keys) nhưng không mở được ổ khóa nào!',
+  },
+  {
+    id: 'iq_q7',
+    text: 'Collocation: You should _______ attention to the instructions.',
+    options: [
+      { text: 'pay', isCorrect: true },
+      { text: 'take', isCorrect: false },
+      { text: 'make', isCorrect: false },
+      { text: 'give', isCorrect: false },
+    ],
+    explanation: '💡 "Pay attention to" = chú ý tập trung vào điều gì.',
+  },
+  {
+    id: 'iq_q8',
+    text: 'Từ vựng: What is the opposite of "GENEROSITY" (sự hào phóng)?',
+    options: [
+      { text: 'Selfishness', isCorrect: true },
+      { text: 'Kindness', isCorrect: false },
+      { text: 'Bravery', isCorrect: false },
+      { text: 'Honesty', isCorrect: false },
+    ],
+    explanation: '💡 "Selfishness" = sự ích kỷ, keo kiệt, trái nghĩa với "generosity".',
+  },
+];
+
+// ============================================================================
+// MAIN COMPONENT: CAT RACE TRACK & IQ CHECKPOINT RACE
+// ============================================================================
+export default function CatRaceTimer({ quizzes = [], selectedQuiz = null, onSelectQuiz = null }) {
+  // Track Theme: 'christmas' (Mèo cưỡi tuần lộc trên đường băng tuyết Giáng Sinh) | 'stadium' (Sân vận động điền kinh truyền thống)
+  const [trackTheme, setTrackTheme] = useState('christmas');
+  const currentCheckpoints = trackTheme === 'christmas' ? IQ_CHECKPOINTS_CHRISTMAS : IQ_CHECKPOINTS_STADIUM;
+
+  // Game Mode: 'iq_race' (Cuộc Đua Trí Tuệ với các trạm câu hỏi) | 'timer' (Đua tính giờ đếm ngược thuần túy)
+  const [gameMode, setGameMode] = useState('iq_race');
+  const [passedCheckpoints, setPassedCheckpoints] = useState({});
+  const passedCheckpointsRef = useRef({});
+  const [activeCheckpointModal, setActiveCheckpointModal] = useState(null);
+  const [checkpointResults, setCheckpointResults] = useState({});
+  const [activeQuizId, setActiveQuizId] = useState(selectedQuiz?.id || (quizzes[0]?.id || ''));
+
   const [totalSeconds, setTotalSeconds] = useState(39);
   const [remainingSeconds, setRemainingSeconds] = useState(39);
   const [isRunning, setIsRunning] = useState(false);
@@ -546,8 +1113,10 @@ export default function CatRaceTimer() {
   const [alarmBellEnabled, setAlarmBellEnabled] = useState(true);
   const [voiceAnnounceEnabled, setVoiceAnnounceEnabled] = useState(false);
   const [liveCasterVoiceEnabled, setLiveCasterVoiceEnabled] = useState(false);
-  const [showCatStatusHud, setShowCatStatusHud] = useState(true);
+  const [showCatStatusHud, setShowCatStatusHud] = useState(false);
+  const [isCommentaryMinimized, setIsCommentaryMinimized] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [fitScreenMode, setFitScreenMode] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Custom Time Inputs
@@ -611,10 +1180,27 @@ export default function CatRaceTimer() {
     lastSpokenCommentaryTimeRef.current = 0;
     finalSprintAnnouncedRef.current = false;
     raceStartAnnouncedRef.current = false;
+    passedCheckpointsRef.current = {};
+    setPassedCheckpoints({});
+    setActiveCheckpointModal(null);
+    setCheckpointResults({});
     setCommentary({
-      text: 'Đường đua đã sẵn sàng! Nhấn Bắt Đầu để xuất phát!',
+      text: trackTheme === 'christmas'
+        ? (gameMode === 'iq_race'
+            ? '🎄 Cuộc Đua Giáng Sinh & Trí Tuệ đã sẵn sàng! Mèo cưỡi tuần lộc đến Trạm trước sẽ được gọi tên trả lời câu hỏi! Nhấn START để xuất phát! 🦌❄️'
+            : '🎄 Đường Đua Giáng Sinh Băng Tuyết đã sẵn sàng! Dàn mèo cưỡi tuần lộc chuẩn bị xuất phát! Nhấn START! 🦌🎅')
+        : (gameMode === 'iq_race'
+            ? '🧠 Cuộc Đua Trí Tuệ đã sẵn sàng! Mèo nào đến Trạm trước sẽ phải trả lời câu hỏi! Nhấn START để xuất phát!'
+            : 'Đường đua đã sẵn sàng! Nhấn Bắt Đầu để xuất phát!'),
       type: 'normal',
-      icon: '🏁',
+      icon: trackTheme === 'christmas' ? '🎄' : (gameMode === 'iq_race' ? '🧠' : '🏁'),
+      headline: trackTheme === 'christmas'
+        ? (gameMode === 'iq_race'
+            ? '🎄 CUỘC ĐUA GIÁNG SINH: MÈO CƯỠI TUẦN LỘC ĐẾN TRẠM SẼ ĐƯỢC GỌI TÊN NHẬN QUÀ SANTA! 🦌❄️'
+            : '🎄 ĐƯỜNG ĐUA GIÁNG SINH: DÀN MÈO CƯỠI TUẦN LỘC BĂNG BĂNG QUA BĂNG TUYẾT BẮC CỰC! 🦌🎅')
+        : (gameMode === 'iq_race'
+            ? '🧠 CUỘC ĐUA TRÍ TUỆ: AI ĐẾN TRẠM TRƯỚC SẼ ĐƯỢC GỌI TÊN TRẢ LỜI CÂU HỎI!'
+            : '🏁 ĐƯỜNG ĐUA ĐÃ SẴN SÀNG! NHẤN START ĐỂ XUẤT PHÁT!'),
       time: Date.now()
     });
     setTotalSeconds(newTotal);
@@ -685,9 +1271,14 @@ export default function CatRaceTimer() {
     }
   };
 
-  // Unmount cleanup
+  // Fullscreen sync & unmount cleanup
   useEffect(() => {
+    const handleFsChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener('fullscreenchange', handleFsChange);
     return () => {
+      document.removeEventListener('fullscreenchange', handleFsChange);
       sound.stopRaceMusic();
     };
   }, []);
@@ -868,6 +1459,178 @@ export default function CatRaceTimer() {
     setEditNameInput(racer.name);
   };
 
+  // ==========================================================================
+  // CUỘC ĐUA TRÍ TUỆ: CHECKPOINT GAME HANDLERS
+  // ==========================================================================
+  // Change Track Theme: 'christmas' | 'stadium'
+  const handleChangeTrackTheme = (theme) => {
+    if (theme === trackTheme) return;
+    setTrackTheme(theme);
+    if (theme === 'christmas') {
+      sound.playJingleBells();
+      setCommentary({
+        text: '🎄 ĐƯỜNG ĐUA GIÁNG SINH ĐÃ BẬT! Dàn mèo cưỡi tuần lộc chuẩn bị lướt trên băng tuyết Bắc Cực! 🦌❄️',
+        type: 'normal',
+        icon: '🎄',
+        headline: '🎄 ĐƯỜNG ĐUA GIÁNG SINH: DÀN MÈO CƯỠI TUẦN LỘC BĂNG BĂNG QUA BĂNG TUYẾT! 🦌❄️',
+        time: Date.now()
+      });
+    } else {
+      sound.playClick();
+      setCommentary({
+        text: '🏟️ Sân điền kinh truyền thống đã sẵn sàng! Chúc các chú mèo thi đấu rực lửa!',
+        type: 'normal',
+        icon: '🏁',
+        headline: '🏁 ĐƯỜNG ĐUA ĐÃ SẴN SÀNG! NHẤN START ĐỂ XUẤT PHÁT!',
+        time: Date.now()
+      });
+    }
+  };
+
+  // 1. Change Game Mode: 'iq_race' | 'timer'
+  const handleChangeGameMode = (mode) => {
+    if (mode === gameMode) return;
+    sound.playClick();
+    setGameMode(mode);
+    handleResetRace(totalSeconds);
+  };
+
+  // 2. Change Selected Quiz for Checkpoint Questions
+  const handleSelectQuizForIQ = (quizId) => {
+    sound.playClick();
+    setActiveQuizId(quizId);
+    if (onSelectQuiz && quizzes) {
+      const found = quizzes.find((q) => q.id === quizId);
+      if (found) onSelectQuiz(found);
+    }
+  };
+
+  // Helper: Retrieve question list for a checkpoint (from selected quiz or default FUN_IQ_QUESTIONS)
+  const getQuestionsForCheckpoint = (checkpointIndex) => {
+    const curQuiz = quizzes?.find((q) => q.id === activeQuizId) || selectedQuiz;
+    if (curQuiz && curQuiz.questions && curQuiz.questions.length > 0) {
+      return curQuiz.questions.map((q, idx) => ({
+        id: q.id || `q_${idx}`,
+        text: q.text || q.question || 'Câu hỏi kiểm tra kiến thức',
+        options: (q.options || []).map((opt) =>
+          typeof opt === 'string'
+            ? { text: opt, isCorrect: opt === q.correctAnswer }
+            : opt
+        ),
+        explanation: q.explanation || 'Hãy cố gắng ở trạm tiếp theo nhé!',
+        correctAnswer: q.correctAnswer
+      }));
+    }
+    return FUN_IQ_QUESTIONS;
+  };
+
+  // 3. Student / Class picks option on Checkpoint Question
+  const handleSelectCheckpointOption = (optIdx) => {
+    if (!activeCheckpointModal || activeCheckpointModal.isRevealed) return;
+    const { question, racer } = activeCheckpointModal;
+    const option = question.options[optIdx];
+    const isCorrect = Boolean(option?.isCorrect || (question.correctAnswer && option?.text === question.correctAnswer));
+
+    if (isCorrect) {
+      sound.playCorrect();
+      confetti({ particleCount: 75, spread: 70, origin: { y: 0.55 } });
+      const updatedEffects = { ...catEffectsRef.current };
+      updatedEffects[racer.id] = { type: 'turbo', expiresAt: Date.now() + 2800, label: '🚀 ĐÚNG CÂU HỎI! +10m' };
+      catEffectsRef.current = updatedEffects;
+      setCatEffects(updatedEffects);
+      setPositions((prev) => ({
+        ...prev,
+        [racer.id]: Math.min(106, (prev[racer.id] || 0) + 10)
+      }));
+    } else {
+      sound.playBoingSound();
+      const updatedEffects = { ...catEffectsRef.current };
+      updatedEffects[racer.id] = { type: 'tumbled', expiresAt: Date.now() + 2800, label: '🍌 SAI CÂU HỎI! -5m' };
+      catEffectsRef.current = updatedEffects;
+      setCatEffects(updatedEffects);
+      setPositions((prev) => ({
+        ...prev,
+        [racer.id]: Math.max(5, (prev[racer.id] || 0) - 5)
+      }));
+    }
+
+    setActiveCheckpointModal((prev) => ({
+      ...prev,
+      selectedOption: optIdx,
+      verdict: isCorrect ? 'correct' : 'wrong',
+      isRevealed: true
+    }));
+  };
+
+  // 4. Teacher manual verdict override
+  const handleTeacherOverrideVerdict = (isCorrect) => {
+    if (!activeCheckpointModal) return;
+    const { racer } = activeCheckpointModal;
+
+    if (isCorrect) {
+      sound.playCorrect();
+      confetti({ particleCount: 75, spread: 70, origin: { y: 0.55 } });
+      const updatedEffects = { ...catEffectsRef.current };
+      updatedEffects[racer.id] = { type: 'turbo', expiresAt: Date.now() + 2800, label: '🚀 ĐÚNG CÂU HỎI! +10m' };
+      catEffectsRef.current = updatedEffects;
+      setCatEffects(updatedEffects);
+      setPositions((prev) => ({
+        ...prev,
+        [racer.id]: Math.min(106, (prev[racer.id] || 0) + 10)
+      }));
+    } else {
+      sound.playBoingSound();
+      const updatedEffects = { ...catEffectsRef.current };
+      updatedEffects[racer.id] = { type: 'tumbled', expiresAt: Date.now() + 2800, label: '🍌 SAI CÂU HỎI! -5m' };
+      catEffectsRef.current = updatedEffects;
+      setCatEffects(updatedEffects);
+      setPositions((prev) => ({
+        ...prev,
+        [racer.id]: Math.max(5, (prev[racer.id] || 0) - 5)
+      }));
+    }
+
+    setActiveCheckpointModal((prev) => ({
+      ...prev,
+      verdict: isCorrect ? 'correct' : 'wrong',
+      isRevealed: true
+    }));
+  };
+
+  // 5. Switch to another question
+  const handleSwitchCheckpointQuestion = () => {
+    if (!activeCheckpointModal) return;
+    const { questionList, qIndex } = activeCheckpointModal;
+    const nextIdx = (qIndex + 1) % questionList.length;
+    sound.playClick();
+    setActiveCheckpointModal((prev) => ({
+      ...prev,
+      qIndex: nextIdx,
+      question: questionList[nextIdx],
+      selectedOption: null,
+      verdict: null,
+      isRevealed: false
+    }));
+  };
+
+  // 6. Resume race after checkpoint
+  const handleResumeRaceAfterCheckpoint = () => {
+    if (!activeCheckpointModal) return;
+    sound.playWhistle();
+    sound.startRaceMusic();
+    const cpId = activeCheckpointModal.checkpoint.id;
+    setCheckpointResults((prev) => ({
+      ...prev,
+      [cpId]: {
+        racer: activeCheckpointModal.racer,
+        verdict: activeCheckpointModal.verdict || 'passed'
+      }
+    }));
+    setActiveCheckpointModal(null);
+    raceStartTimeRef.current = performance.now() - (elapsedOffsetRef.current * 1000);
+    setIsRunning(true);
+  };
+
   // Smooth 60fps Animation & Physics Loop (Silky fluid movement, no jerky jumps)
   useEffect(() => {
     if (!isRunning) {
@@ -963,6 +1726,74 @@ export default function CatRaceTimer() {
           leadId = r.id;
         }
       });
+
+      // ======================================================================
+      // CUỘC ĐUA TRÍ TUỆ: CHECKPOINT DETECTION (Trạm Dừng Kiểm Tra Kiến Thức)
+      // "mèo nào lên nhanh nhất mèo đó phải trả lời 1 câu hỏi hiện lên màn hình"
+      // "dù bạn ấy ko giơ tay nhưng con mèo nó chạy lên trước tới trạm trước"
+      // ======================================================================
+      if (gameMode === 'iq_race') {
+        const cps = trackTheme === 'christmas' ? IQ_CHECKPOINTS_CHRISTMAS : IQ_CHECKPOINTS_STADIUM;
+        for (let i = 0; i < cps.length; i++) {
+          const cp = cps[i];
+          if (!passedCheckpointsRef.current[cp.id]) {
+            // Find all racers that reached or passed this checkpoint
+            const reachingRacers = racers.filter((r) => (nextPos[r.id] || 0) >= cp.pos);
+            if (reachingRacers.length > 0) {
+              // Pick the fastest racer (highest position)
+              reachingRacers.sort((a, b) => (nextPos[b.id] || 0) - (nextPos[a.id] || 0));
+              const reachingCat = reachingRacers[0];
+
+              passedCheckpointsRef.current[cp.id] = {
+                racerId: reachingCat.id,
+                racerName: reachingCat.name,
+                racerNumber: reachingCat.number,
+                passedAt: now
+              };
+              setPassedCheckpoints({ ...passedCheckpointsRef.current });
+
+              // Pause race animation immediately
+              if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+              sound.stopRaceMusic();
+              setIsRunning(false);
+              sound.playWhistle();
+
+              const qList = getQuestionsForCheckpoint(i);
+              const qIndex = i % qList.length;
+              const chosenQ = qList[qIndex] || qList[0];
+
+              setCommentary({
+                text: trackTheme === 'christmas'
+                  ? `🎯 Dù bạn ${reachingCat.name} không giơ tay, nhưng tuần lộc #${reachingCat.number} đã cán mốc Trạm ${i + 1} (${cp.name}) trước tiên! Xin mời bạn ${reachingCat.name} trả lời câu hỏi để nhận quà Santa!`
+                  : `🎯 Dù bạn ${reachingCat.name} không giơ tay, nhưng mèo #${reachingCat.number} đã cán mốc Trạm ${i + 1} (${cp.name}) trước tiên! Xin mời bạn ${reachingCat.name} trả lời câu hỏi!`,
+                type: 'checkpoint',
+                icon: cp.icon || (trackTheme === 'christmas' ? '🎄' : '🧠'),
+                headline: trackTheme === 'christmas'
+                  ? `🎄 TRẠM ${i + 1} (${cp.name.toUpperCase()}): TUẦN LỘC #${reachingCat.number} (${reachingCat.name}) ĐẾN TRƯỚC TIÊN! MỜI BẠN ${reachingCat.name} TRẢ LỜI CÂU HỎI!`
+                  : `🎯 TRẠM ${i + 1} (${cp.name.toUpperCase()}): MÈO #${reachingCat.number} (${reachingCat.name}) ĐẾN TRƯỚC TIÊN! MỜI BẠN ${reachingCat.name} TRẢ LỜI CÂU HỎI!`,
+                actorA: reachingCat,
+                time: now
+              });
+
+              setActiveCheckpointModal({
+                checkpoint: cp,
+                checkpointIndex: i,
+                racer: reachingCat,
+                questionList: qList,
+                qIndex,
+                question: chosenQ,
+                selectedOption: null,
+                verdict: null,
+                isRevealed: false
+              });
+
+              setPositions(nextPos);
+              setLeaderId(leadId);
+              return;
+            }
+          }
+        }
+      }
 
       // ======================================================================
       // LEAD CHANGE & OVERTAKE DYNAMIC CASTER COMMENTARY
@@ -1292,7 +2123,7 @@ export default function CatRaceTimer() {
       isSubscribed = false;
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
-  }, [isRunning, totalSeconds, racers, soundEnabled, liveCasterVoiceEnabled]);
+  }, [isRunning, totalSeconds, racers, soundEnabled, liveCasterVoiceEnabled, gameMode, activeQuizId, quizzes, selectedQuiz, trackTheme]);
 
   // Race Finish Ceremony
   const handleFinishRace = (finalSnapshotPositions = positions) => {
@@ -1302,6 +2133,10 @@ export default function CatRaceTimer() {
     setIsRunning(false);
     setIsFinished(true);
     setRemainingSeconds(0);
+
+    if (trackTheme === 'christmas') {
+      sound.playJingleBells();
+    }
 
     // DETERMINATION OF WINNER:
     // "mèo phải chạy qua hết vạch nhanh nhất thì mới được tính là mèo thắng"
@@ -1330,10 +2165,14 @@ export default function CatRaceTimer() {
     setFirstCrossedId(winningCat.id);
 
     setCommentary({
-      text: `🏆 VÔ ĐỊCH: Mèo số ${winningCat.number} (${winningCat.name}) đã xuất sắc cán đích đầu tiên và giành chiến thắng chung cuộc!`,
+      text: trackTheme === 'christmas'
+        ? `🏆 VÔ ĐỊCH GIÁNG SINH: Mèo số ${winningCat.number} (${winningCat.name}) cưỡi chú tuần lộc xuất sắc cán đích Bắc Cực đầu tiên! 🎄🎅`
+        : `🏆 VÔ ĐỊCH: Mèo số ${winningCat.number} (${winningCat.name}) đã xuất sắc cán đích đầu tiên và giành chiến thắng chung cuộc!`,
       type: 'winner',
-      icon: '🏆',
-      headline: `🏆 QUÁN QUÂN: MÈO SỐ #${winningCat.number} (${winningCat.name}) GIÀNH CHIẾN THẮNG CHUNG CUỘC! 👑`,
+      icon: trackTheme === 'christmas' ? '🎄' : '🏆',
+      headline: trackTheme === 'christmas'
+        ? `🎄 QUÁN QUÂN BẮC CỰC: MÈO SỐ #${winningCat.number} (${winningCat.name}) CƯỠI TUẦN LỘC CÁN ĐÍCH GIÁNG SINH ĐẦU TIÊN! 🦌👑`
+        : `🏆 QUÁN QUÂN: MÈO SỐ #${winningCat.number} (${winningCat.name}) GIÀNH CHIẾN THẮNG CHUNG CUỘC! 👑`,
       actorA: winningCat,
       time: Date.now()
     });
@@ -1373,8 +2212,10 @@ export default function CatRaceTimer() {
 
     if (voiceAnnounceEnabled) {
       setTimeout(() => {
-        speech.speakVietnamese(
-          `Chúc mừng Mèo số ${winningCat.number}, bạn ${winningCat.name} đã chạy qua vạch đích nhanh nhất và giành chiến thắng!`
+        speech.speakEnglish(
+          trackTheme === 'christmas'
+            ? `Merry Christmas! Congratulations Reindeer Number ${winningCat.number}, ${winningCat.name}! You are the grand champion of the North Pole race!`
+            : `Congratulations Racer Number ${winningCat.number}, ${winningCat.name}! You crossed the finish line first and won the championship!`
         );
       }, 700);
     }
@@ -1416,17 +2257,20 @@ export default function CatRaceTimer() {
     .sort((a, b) => (positions[b.id] || 0) - (positions[a.id] || 0))
     .slice(0, 3);
 
-  // Dynamic lane height based on racer count
-  const laneHeightClass =
-    racers.length <= 6
-      ? 'h-24 sm:h-28'
-      : racers.length <= 10
-      ? 'h-20 sm:h-22'
-      : 'h-16 sm:h-18';
+  // Dynamic lane height based on racer count & fitScreenMode
+  const laneHeightClass = fitScreenMode
+    ? 'flex-1 min-h-[34px] max-h-[82px]'
+    : racers.length <= 5
+    ? 'h-20 sm:h-22'
+    : racers.length <= 8
+    ? 'h-16 sm:h-18'
+    : 'h-12 sm:h-14';
 
   // Category badge styling for TV live broadcast console
   const getCategoryBadgeStyle = (type) => {
     switch (type) {
+      case 'checkpoint':
+        return 'bg-purple-600/40 text-purple-200 border-purple-400';
       case 'kick':
         return 'bg-rose-600/30 text-rose-300 border-rose-500/60';
       case 'slip':
@@ -1449,6 +2293,8 @@ export default function CatRaceTimer() {
   // Headline card background & glow styling for TV projection
   const getHeadlineCardStyle = (type) => {
     switch (type) {
+      case 'checkpoint':
+        return 'bg-gradient-to-r from-purple-950 via-indigo-900/90 to-purple-950 border-purple-400 shadow-[0_0_40px_rgba(168,85,247,0.5)]';
       case 'kick':
         return 'bg-gradient-to-r from-red-950 via-rose-900/80 to-red-950 border-red-500 shadow-[0_0_35px_rgba(239,68,68,0.35)]';
       case 'slip':
@@ -1578,26 +2424,59 @@ export default function CatRaceTimer() {
   return (
     <div
       ref={containerRef}
-      className={`relative w-full rounded-3xl overflow-hidden shadow-2xl border-4 border-[#222B38] select-none flex flex-col font-sans ${
-        isFullscreen ? 'fixed inset-0 z-50 rounded-none border-none h-screen' : 'min-h-[600px]'
+      className={`relative w-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-2 sm:border-4 border-[#222B38] select-none flex flex-col font-sans transition-all duration-300 ${
+        isFullscreen
+          ? 'fixed inset-0 z-50 rounded-none border-none h-screen w-screen'
+          : 'h-[calc(100vh-165px)] min-h-[460px] max-h-[860px]'
       }`}
     >
       {/* ==================================================================== */}
-      {/* 1. TOP STADIUM GRASS BORDER WITH CONTROLS & DIGITAL COUNTDOWN CLOCK   */}
+      {/* 1. TOP STADIUM / CHRISTMAS ROOF WITH CONTROLS & DIGITAL CLOCK        */}
       {/* ==================================================================== */}
-      <div className="sticky top-0 bg-[#3EA824] px-3 sm:px-6 py-2 sm:py-2.5 z-30 flex items-center justify-between shadow-md border-b-4 border-[#267316]">
-        {/* Stadium turf border trim (neatly contained at base of grass roof) */}
-        <div className="absolute bottom-0 left-0 right-0 h-2 flex overflow-hidden pointer-events-none opacity-40">
-          {Array.from({ length: 40 }).map((_, i) => (
+      <div
+        className={`sticky top-0 px-2 sm:px-4 py-1.5 sm:py-2 z-30 flex items-center justify-between shadow-md border-b-2 sm:border-b-4 transition-colors duration-300 ${
+          trackTheme === 'christmas'
+            ? 'bg-[#14532D] border-[#0A3019]'
+            : 'bg-[#3EA824] border-[#267316]'
+        }`}
+      >
+        {/* Christmas Fairy Lights string across top roof */}
+        {trackTheme === 'christmas' ? (
+          <div className="absolute top-0 left-0 right-0 flex justify-around pointer-events-none z-30 -mt-1 overflow-hidden">
+            {Array.from({ length: 32 }).map((_, i) => {
+              const colors = ['#EF4444', '#FBBF24', '#22C55E', '#38BDF8', '#EC4899', '#A855F7'];
+              const col = colors[i % colors.length];
+              return (
+                <div key={i} className="flex flex-col items-center flex-shrink-0">
+                  <div className="w-0.5 h-1.5 bg-stone-700/80" />
+                  <div
+                    className="w-2.5 h-3.5 rounded-full shadow-md animate-[fairyLightBlink_1.2s_ease-in-out_infinite]"
+                    style={{
+                      backgroundColor: col,
+                      boxShadow: `0 0 8px ${col}`,
+                      animationDelay: `${(i * 0.12) % 1.2}s`
+                    }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
+
+        {/* Roof trim: White snowy icicles (Christmas) or Green stadium turf (Stadium) */}
+        <div className="absolute bottom-0 left-0 right-0 h-2 flex overflow-hidden pointer-events-none opacity-50">
+          {Array.from({ length: 42 }).map((_, i) => (
             <div
               key={i}
-              className="w-8 h-4 bg-[#267316] rounded-t-full flex-shrink-0"
+              className={`w-8 h-4 rounded-t-full flex-shrink-0 ${
+                trackTheme === 'christmas' ? 'bg-cyan-100/90' : 'bg-[#267316]'
+              }`}
               style={{ marginLeft: '-6px' }}
             />
           ))}
         </div>
 
-        {/* LEFT CONTROLS: Square Black Buttons (⚙️, 🎵, 🔔, ➕, ➖) & Start/Clear */}
+        {/* LEFT CONTROLS: Square Black Buttons & Start/Clear */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 z-10 flex-wrap">
           {/* Black Square Buttons with White Icons matching screenshot */}
           <div className="flex items-center gap-1 bg-[#1A202C] p-1 rounded-xl border-2 border-black/30 shadow-md">
@@ -1609,7 +2488,7 @@ export default function CatRaceTimer() {
                 setIsSettingsOpen(!isSettingsOpen);
               }}
               className="p-1.5 sm:p-2 bg-[#2D3748] hover:bg-[#4A5568] text-white rounded-lg transition"
-              title="Cài đặt thời gian, thêm mèo & nạp danh sách học sinh"
+              title="Cài đặt thời gian, chủ đề Giáng sinh, thêm mèo & nạp danh sách học sinh"
             >
               <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
@@ -1711,31 +2590,118 @@ export default function CatRaceTimer() {
               CLEAR
             </button>
           </div>
+
+          {/* THEME TOGGLE: [🎄 GIÁNG SINH TUẦN LỘC] | [🏟️ SÂN ĐIỀN KINH] */}
+          <div className="flex items-center bg-[#1A202C] p-1 rounded-xl border-2 border-black/30 shadow-md">
+            <button
+              type="button"
+              onClick={() => handleChangeTrackTheme('christmas')}
+              className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg font-black text-[11px] sm:text-xs transition flex items-center gap-1 ${
+                trackTheme === 'christmas'
+                  ? 'bg-gradient-to-r from-red-600 via-rose-600 to-emerald-600 text-white shadow ring-2 ring-yellow-300'
+                  : 'text-stone-300 hover:text-white'
+              }`}
+              title="Chế độ Đường Đua Giáng Sinh (Mèo cưỡi tuần lộc trên đường băng tuyết)"
+            >
+              <span>🦌</span>
+              <span className="whitespace-nowrap">Đua Giáng Sinh</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleChangeTrackTheme('stadium')}
+              className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg font-black text-[11px] sm:text-xs transition flex items-center gap-1 ${
+                trackTheme === 'stadium'
+                  ? 'bg-amber-500 text-stone-950 shadow ring-2 ring-yellow-300'
+                  : 'text-stone-300 hover:text-white'
+              }`}
+              title="Chế độ Sân Điền Kinh Truyền Thống"
+            >
+              <span>🏟️</span>
+              <span className="whitespace-nowrap">Sân Điền Kinh</span>
+            </button>
+          </div>
+
+          {/* DUAL GAME MODE SELECTOR: [🧠 ĐUA TRÍ TUỆ] | [⏱️ ĐUA ĐẾM GIỜ] */}
+          <div className="flex items-center bg-[#1A202C] p-1 rounded-xl border-2 border-black/30 shadow-md">
+            <button
+              type="button"
+              onClick={() => handleChangeGameMode('iq_race')}
+              className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg font-black text-[11px] sm:text-xs transition flex items-center gap-1 ${
+                gameMode === 'iq_race'
+                  ? 'bg-purple-600 text-white shadow ring-2 ring-purple-300'
+                  : 'text-stone-300 hover:text-white'
+              }`}
+              title="Chế độ Cuộc Đua Trí Tuệ (3 Trạm Dừng Trả Lời Câu Hỏi)"
+            >
+              <Brain className="w-3.5 h-3.5 text-yellow-300" />
+              <span className="whitespace-nowrap">Đua Trí Tuệ</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleChangeGameMode('timer')}
+              className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg font-black text-[11px] sm:text-xs transition flex items-center gap-1 ${
+                gameMode === 'timer'
+                  ? 'bg-amber-500 text-stone-950 shadow ring-2 ring-yellow-300'
+                  : 'text-stone-300 hover:text-white'
+              }`}
+              title="Chế độ Đua Đếm Giờ Thuần Túy"
+            >
+              <Clock className="w-3.5 h-3.5 text-stone-950" />
+              <span className="whitespace-nowrap">Đua Đếm Giờ</span>
+            </button>
+          </div>
         </div>
 
         {/* CENTER: THE ICONIC DIGITAL COUNTDOWN CLOCK BOX (00:00:21) */}
-        <div className="z-10 bg-[#F4F4FD] border-[3.5px] border-[#1A202C] rounded-2xl px-3 sm:px-7 py-1 shadow-xl flex items-center justify-center">
-          <span className="font-mono text-2xl sm:text-4xl font-black text-[#1A202C] tracking-widest drop-shadow-sm select-all">
+        <div
+          className={`z-10 rounded-2xl px-3 sm:px-7 py-1 shadow-xl flex items-center justify-center border-[3.5px] transition-all ${
+            trackTheme === 'christmas'
+              ? 'bg-[#F0FDF4] border-[#DC2626] ring-2 ring-emerald-400/60 shadow-[0_0_15px_rgba(220,38,38,0.35)]'
+              : 'bg-[#F4F4FD] border-[#1A202C]'
+          }`}
+        >
+          <span
+            className={`font-mono text-2xl sm:text-4xl font-black tracking-widest drop-shadow-sm select-all ${
+              trackTheme === 'christmas' ? 'text-[#991B1B]' : 'text-[#1A202C]'
+            }`}
+          >
             {formatTime(remainingSeconds)}
           </span>
         </div>
 
-        {/* RIGHT: RACER COUNT PILL & FULLSCREEN */}
-        <div className="flex items-center gap-2 z-10">
+        {/* RIGHT: RACER COUNT PILL, FIT SCREEN TOGGLE & FULLSCREEN */}
+        <div className="flex items-center gap-1.5 sm:gap-2 z-10">
           <div
             onClick={() => setIsSettingsOpen(true)}
-            className="cursor-pointer flex items-center gap-1.5 text-[11px] font-black text-white bg-black/40 hover:bg-black/60 px-3 py-1.5 rounded-full border border-white/20 transition shadow"
-            title="Nhấn để đổi số lượng mèo hoặc nạp danh sách học sinh"
+            className="cursor-pointer flex items-center gap-1.5 text-[11px] font-black text-white bg-black/40 hover:bg-black/60 px-2.5 sm:px-3 py-1.5 rounded-full border border-white/20 transition shadow"
+            title="Nhấn để đổi số lượng hoặc nạp danh sách học sinh"
           >
-            <span className="text-yellow-300">🐱</span>
-            <span>{racers.length} Mèo Đua</span>
+            <span className="text-yellow-300">{trackTheme === 'christmas' ? '🦌' : '🐱'}</span>
+            <span>{racers.length} {trackTheme === 'christmas' ? 'Tuần Lộc' : 'Mèo Đua'}</span>
           </div>
+
+          {/* FIT SCREEN / TOÀN CẢNH TOGGLE */}
+          <button
+            type="button"
+            onClick={() => setFitScreenMode(!fitScreenMode)}
+            className={`px-2 py-1.5 rounded-xl border-2 transition shadow-md flex items-center gap-1 ${
+              fitScreenMode
+                ? 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-400/50'
+                : 'bg-[#1A202C] hover:bg-[#2D3748] text-stone-300 border-black/30'
+            }`}
+            title={fitScreenMode ? 'Đang bật: Vừa khít màn hình (Tất cả mèo đều thấy rõ mà không cần cuộn)' : 'Đang bật: Chế độ rộng rãi (Cuộn trang)'}
+          >
+            <Compass className="w-3.5 h-3.5 text-emerald-300" />
+            <span className="text-[10px] font-black hidden md:inline">
+              {fitScreenMode ? 'Vừa Màn Hình' : 'Cuộn Trang'}
+            </span>
+          </button>
 
           <button
             type="button"
             onClick={handleToggleFullscreen}
-            className="p-2 bg-[#1A202C] hover:bg-[#2D3748] text-white rounded-xl border-2 border-black/30 transition shadow-md"
-            title="Toàn màn hình máy chiếu"
+            className="p-1.5 sm:p-2 bg-[#1A202C] hover:bg-[#2D3748] text-white rounded-xl border-2 border-black/30 transition shadow-md"
+            title="Toàn màn hình máy chiếu / Tivi"
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </button>
@@ -1743,218 +2709,208 @@ export default function CatRaceTimer() {
       </div>
 
       {/* ==================================================================== */}
-      {/* TV SPORTS BROADCAST & LIVE COMMENTARY JUMBOTRON (Ô BÌNH LUẬN SIÊU TO)  */}
+      {/* SLEEK SPORTS LIVE COMMENTARY TICKER (THANH BÌNH LUẬN THỂ THAO TINH TẾ) */}
       {/* ==================================================================== */}
-      <div className="bg-[#0D1117] border-b-4 border-[#FFC600] z-20 shadow-2xl transition-all duration-300">
-        {/* ROW 1: TV BROADCAST TOP BAR (Thanh tiêu đề truyền hình trực tiếp) */}
-        <div className="px-3 sm:px-6 py-2 bg-gradient-to-r from-[#220B0B] via-[#12171E] to-[#201607] flex items-center justify-between gap-3 border-b border-white/10 flex-wrap">
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-            {/* Live On Air Badge */}
-            <div className="flex items-center gap-1.5 bg-red-600 text-white text-[11px] sm:text-xs font-black uppercase px-3 py-1 rounded-full shadow-lg tracking-wider animate-pulse">
-              <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping" />
-              <span>🔴 TV LIVE • BÌNH LUẬN TRỰC TIẾP</span>
-            </div>
-
-            {/* Dynamic Event Category Pill */}
-            <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase border shadow-sm ${getCategoryBadgeStyle(commentary.type)}`}>
-              {commentary.type === 'kick'
-                ? '💥 CÚ ĐÁ TÌNH BẠN'
-                : commentary.type === 'slip'
-                ? '🍌 TAI NẠN VỎ CHUỐI'
-                : commentary.type === 'turbo'
-                ? '🚀 PHẢN LỰC PATE'
-                : commentary.type === 'distracted'
-                ? '🦋 BƯỚM ĐẬU SỐNG MŨI'
-                : commentary.type === 'overtake'
-                ? '⚡ ĐỔI NGÔI ĐẦU BẢNG'
-                : commentary.type === 'sprint'
-                ? '🔥 NƯỚC RÚT VỀ ĐÍCH'
-                : commentary.type === 'winner'
-                ? '🏆 QUÁN QUÂN VỀ ĐÍCH'
-                : '📢 TIÊU ĐIỂM ĐƯỜNG ĐUA'}
-            </span>
-
-            {/* Leading Cat Quick Indicator */}
-            {liveLeaders[0] && isRunning && (
-              <span className="hidden md:flex items-center gap-1 text-[11px] font-black text-yellow-300 bg-yellow-500/20 px-2.5 py-0.5 rounded-full border border-yellow-400/30">
-                <span>👑 Dẫn đầu:</span>
-                <span className="underline">Mèo #{liveLeaders[0].number} ({liveLeaders[0].name})</span>
+      <div className="bg-[#0A0E17]/95 border-b border-amber-500/30 z-20 shadow-md backdrop-blur-sm transition-all duration-200">
+        {isCommentaryMinimized ? (
+          /* Minimized Micro Ticker (Thu gọn tối đa) */
+          <div className="px-3 sm:px-4 py-1.5 flex items-center justify-between text-xs text-stone-300 gap-2">
+            <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />
+              <span className="font-black text-red-400 text-[10px] tracking-wider shrink-0 uppercase">LIVE</span>
+              <span className="truncate text-stone-200 text-xs font-semibold">
+                {commentary.icon} {commentary.text}
               </span>
-            )}
-          </div>
-
-          {/* Right Controls: Troll Mode & Toggle Cat Status HUD */}
-          <div className="flex items-center gap-2">
+            </div>
             <button
               type="button"
-              onClick={() => setShowCatStatusHud(!showCatStatusHud)}
-              className="text-[11px] font-bold text-stone-300 hover:text-white bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded-lg transition border border-white/15 flex items-center gap-1"
-              title="Ẩn hoặc hiện bảng trạng thái từng chú mèo"
+              onClick={() => setIsCommentaryMinimized(false)}
+              className="text-[11px] text-amber-400 hover:text-amber-300 flex items-center gap-1 shrink-0 font-bold px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 transition"
+              title="Mở rộng thanh bình luận"
             >
-              <span>📊</span>
-              <span>{showCatStatusHud ? 'Thu gọn trạng thái' : 'Hiện trạng thái mèo'}</span>
+              <span>Mở rộng</span>
+              <ChevronDown className="w-3.5 h-3.5" />
             </button>
-
-            {trollModeEnabled ? (
-              <span className="text-[11px] text-amber-300 font-black flex items-center gap-1 bg-amber-500/20 px-2.5 py-1 rounded-full border border-amber-400/40 shadow">
-                <span>⚡</span>
-                <span className="hidden sm:inline">CHẾ ĐỘ</span>
-                <span>ĐUA ĐỂU: BẬT</span>
-              </span>
-            ) : (
-              <span className="text-[11px] text-stone-400 font-bold hidden sm:inline bg-white/10 px-2.5 py-1 rounded-full">
-                Đua Chuẩn
-              </span>
-            )}
           </div>
-        </div>
-
-        {/* ROW 2: THE BIG HEADLINE EVENT DISPLAY (Ô BÌNH LUẬN TO KHỔNG LỒ DÀNH CHO TIVI & LAPTOP) */}
-        <div className="px-3 sm:px-6 py-2.5 sm:py-3.5">
-          <div
-            key={commentary.time}
-            className={`p-3.5 sm:p-5 rounded-2xl border-2 sm:border-3 shadow-2xl transition-all duration-300 relative overflow-hidden ${getHeadlineCardStyle(commentary.type)}`}
-          >
-            {/* Background watermarked large icon */}
-            <div className="absolute right-3 sm:right-6 -bottom-3 text-6xl sm:text-7xl opacity-15 pointer-events-none select-none">
-              {commentary.icon || '🎙️'}
-            </div>
-
-            {/* Headline Subtitle */}
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-xl sm:text-2xl drop-shadow">{commentary.icon || '📢'}</span>
-              <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-300 drop-shadow">
-                {commentary.headline || 'BÌNH LUẬN TRỰC TIẾP TỪNG KHOẢNH KHẮC'}
-              </span>
-            </div>
-
-            {/* Main Headline Text (Massive, Bold, High Contrast, Readable from TV across room) */}
-            <p className="text-base sm:text-xl md:text-2xl lg:text-3xl font-black text-white leading-snug tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-              {commentary.text}
-            </p>
-
-            {/* Visual Action Banner (Clash Cards for Kicks, Slips, Turbos, Overtakes) */}
-            {commentary.actorA && (
-              <div className="mt-2.5 pt-2 border-t border-white/20 flex items-center gap-2 sm:gap-3 flex-wrap">
-                {/* Actor A Pill */}
-                <div className="flex items-center gap-2 px-3 py-1 bg-black/60 border border-white/40 rounded-xl shadow-md">
-                  <span
-                    className="w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center font-black text-[11px] text-white border border-white/60 shadow"
-                    style={{ backgroundColor: commentary.actorA.furColor || '#E06D28' }}
-                  >
-                    #{commentary.actorA.number}
-                  </span>
-                  <span className="text-white font-black text-xs sm:text-sm">
-                    {commentary.actorA.name}
-                  </span>
-                </div>
-
-                {/* Clash connector & Actor B */}
-                {commentary.type === 'kick' && commentary.actorB ? (
-                  <>
-                    <span className="text-yellow-300 font-black text-xs sm:text-sm animate-pulse flex items-center gap-1">
-                      <span>💥</span>
-                      <span className="uppercase">TUNG CƯỚC ĐÁ (-5m)</span>
-                      <span>🦶 ──▶</span>
-                    </span>
-                    <div className="flex items-center gap-2 px-3 py-1 bg-orange-950/80 border border-orange-400 rounded-xl shadow-md">
-                      <span
-                        className="w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center font-black text-[11px] text-white border border-white/60 shadow"
-                        style={{ backgroundColor: commentary.actorB.furColor || '#4A5568' }}
-                      >
-                        #{commentary.actorB.number}
-                      </span>
-                      <span className="text-orange-200 font-black text-xs sm:text-sm">
-                        {commentary.actorB.name}
-                      </span>
-                      <span className="text-xs">😵</span>
-                    </div>
-                  </>
-                ) : commentary.type === 'overtake' && commentary.actorB ? (
-                  <>
-                    <span className="text-yellow-300 font-black text-xs sm:text-sm animate-pulse flex items-center gap-1">
-                      <span>⚡</span>
-                      <span className="uppercase">VƯỢT MẶT SOÁN NGÔI</span>
-                      <span>──▶</span>
-                    </span>
-                    <div className="flex items-center gap-2 px-3 py-1 bg-stone-900/80 border border-stone-400 rounded-xl shadow-md">
-                      <span
-                        className="w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center font-black text-[11px] text-white border border-white/60 shadow"
-                        style={{ backgroundColor: commentary.actorB.furColor || '#4A5568' }}
-                      >
-                        #{commentary.actorB.number}
-                      </span>
-                      <span className="text-stone-300 font-black text-xs sm:text-sm">
-                        {commentary.actorB.name}
-                      </span>
-                      <span className="text-xs">🥈</span>
-                    </div>
-                  </>
-                ) : commentary.type === 'slip' ? (
-                  <span className="text-yellow-300 font-bold text-xs sm:text-sm flex items-center gap-1.5">
-                    <span>🍌</span>
-                    <span>Đang bị trượt chân té lăn quay xoay 720 độ trên đường đua!</span>
-                  </span>
-                ) : commentary.type === 'turbo' ? (
-                  <span className="text-cyan-300 font-bold text-xs sm:text-sm flex items-center gap-1.5">
-                    <span>🚀🔥</span>
-                    <span>Bật phản lực pate siêu tốc, bứt phá thêm +9 mét!</span>
-                  </span>
-                ) : commentary.type === 'distracted' ? (
-                  <span className="text-purple-300 font-bold text-xs sm:text-sm flex items-center gap-1.5">
-                    <span>🦋</span>
-                    <span>Đang ngắm bướm bắt hoa, đứng hình tại chỗ!</span>
-                  </span>
-                ) : null}
+        ) : (
+          /* Expanded Sleek Sports Bar (Thanh bình luận thể thao nhỏ gọn, thanh lịch) */
+          <div className="px-3 sm:px-4 py-1.5 flex items-center justify-between gap-2.5 flex-wrap md:flex-nowrap">
+            {/* Left: LIVE Badge + Category Pill */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <div className="flex items-center gap-1 bg-red-600 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full shadow-sm tracking-wider animate-pulse">
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                <span>LIVE</span>
               </div>
-            )}
-          </div>
-        </div>
 
-        {/* ROW 3: REAL-TIME CAT STATUS HUD (BẢNG TRẠNG THÁI TỪNG CHÚ MÈO ĐANG CHẠY) */}
-        {showCatStatusHud && (
-          <div className="px-3 sm:px-6 pb-2.5 pt-1 border-t border-white/10 bg-[#080B0F]">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[10px] sm:text-[11px] font-black uppercase text-amber-400 tracking-wider flex items-center gap-1.5">
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border shadow-sm ${getCategoryBadgeStyle(commentary.type)}`}>
+                {commentary.type === 'checkpoint'
+                  ? '🧠 Trạm Trí Tuệ'
+                  : commentary.type === 'kick'
+                  ? '💥 Cú Đá Đểu'
+                  : commentary.type === 'slip'
+                  ? '🍌 Vỏ Chuối'
+                  : commentary.type === 'turbo'
+                  ? '🚀 Phản Lực'
+                  : commentary.type === 'distracted'
+                  ? '🦋 Bướm Đậu'
+                  : commentary.type === 'overtake'
+                  ? '⚡ Soán Ngôi'
+                  : commentary.type === 'sprint'
+                  ? '🔥 Nước Rút'
+                  : commentary.type === 'winner'
+                  ? '🏆 Quán Quân'
+                  : '📢 Trực Tiếp'}
+              </span>
+            </div>
+
+            {/* Center: Sleek Commentary Text + Inline Action Pills */}
+            <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
+              <span className="text-sm shrink-0">{commentary.icon || '📢'}</span>
+              <span className="text-xs sm:text-sm font-bold text-stone-100 truncate tracking-tight" title={commentary.text}>
+                {commentary.text}
+              </span>
+
+              {/* Inline Mini Action Pill for Kicks & Overtakes */}
+              {commentary.actorA && (
+                <div className="hidden sm:flex items-center gap-1.5 shrink-0 ml-1">
+                  {commentary.type === 'kick' && commentary.actorB ? (
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-rose-950/80 border border-rose-500/40 rounded-full text-[11px] font-bold text-rose-200">
+                      <span
+                        className="w-3.5 h-3.5 rounded-full flex items-center justify-center font-black text-[9px] text-white"
+                        style={{ backgroundColor: commentary.actorA.furColor || '#E06D28' }}
+                      >
+                        #{commentary.actorA.number}
+                      </span>
+                      <span>{commentary.actorA.name}</span>
+                      <span className="text-yellow-300">💥 đá</span>
+                      <span
+                        className="w-3.5 h-3.5 rounded-full flex items-center justify-center font-black text-[9px] text-white"
+                        style={{ backgroundColor: commentary.actorB.furColor || '#4A5568' }}
+                      >
+                        #{commentary.actorB.number}
+                      </span>
+                      <span>{commentary.actorB.name}</span>
+                    </div>
+                  ) : commentary.type === 'overtake' && commentary.actorB ? (
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-950/80 border border-amber-500/40 rounded-full text-[11px] font-bold text-amber-200">
+                      <span
+                        className="w-3.5 h-3.5 rounded-full flex items-center justify-center font-black text-[9px] text-white"
+                        style={{ backgroundColor: commentary.actorA.furColor || '#E06D28' }}
+                      >
+                        #{commentary.actorA.number}
+                      </span>
+                      <span>{commentary.actorA.name}</span>
+                      <span className="text-yellow-300">⚡ vượt</span>
+                      <span
+                        className="w-3.5 h-3.5 rounded-full flex items-center justify-center font-black text-[9px] text-white"
+                        style={{ backgroundColor: commentary.actorB.furColor || '#4A5568' }}
+                      >
+                        #{commentary.actorB.number}
+                      </span>
+                      <span>{commentary.actorB.name}</span>
+                    </div>
+                  ) : null}
+                </div>
+              )}
+            </div>
+
+            {/* Right: Quick Checkpoint Goal, Cat Status HUD Toggle & Collapse */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              {/* Cuộc Đua Trí Tuệ: Next Station Indicator */}
+              {gameMode === 'iq_race' && (() => {
+                const nextCp = currentCheckpoints.find((cp) => !passedCheckpoints[cp.id]);
+                return nextCp ? (
+                  <span className="hidden lg:flex items-center gap-1 text-[10px] font-bold text-purple-200 bg-purple-900/60 px-2 py-0.5 rounded-full border border-purple-400/30">
+                    <span>🚩</span>
+                    <span>{nextCp.name} ({nextCp.pos}%)</span>
+                  </span>
+                ) : null;
+              })()}
+
+              {/* Quiz Selector dropdown if quizzes available */}
+              {gameMode === 'iq_race' && quizzes && quizzes.length > 0 && (
+                <div className="hidden sm:flex items-center gap-1 bg-stone-900 px-2 py-0.5 rounded border border-purple-500/30">
+                  <span className="text-[10px] text-purple-300 font-bold">Quiz:</span>
+                  <select
+                    value={activeQuizId}
+                    onChange={(e) => handleSelectQuizForIQ(e.target.value)}
+                    className="bg-transparent text-yellow-300 text-[10px] font-bold outline-none cursor-pointer max-w-[110px] truncate"
+                    title="Chọn bộ câu hỏi cho các trạm trí tuệ"
+                  >
+                    <option value="" className="bg-[#10141D] text-stone-200">8 Đố Vui</option>
+                    {quizzes.map((q) => (
+                      <option key={q.id} value={q.id} className="bg-[#10141D] text-stone-200">
+                        {q.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Status HUD Toggle Button */}
+              <button
+                type="button"
+                onClick={() => setShowCatStatusHud(!showCatStatusHud)}
+                className={`text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded transition border flex items-center gap-1 ${
+                  showCatStatusHud
+                    ? 'bg-amber-500/20 text-amber-300 border-amber-400/40'
+                    : 'text-stone-300 hover:text-white bg-white/5 hover:bg-white/10 border-white/10'
+                }`}
+                title="Bật/Tắt bảng trạng thái từng chú mèo"
+              >
                 <span>📊</span>
-                <span>BẢNG TRẠNG THÁI TỪNG CHÚ MÈO (TRỰC TIẾP TRÊN ĐƯỜNG ĐUA)</span>
+                <span className="hidden md:inline">{showCatStatusHud ? 'Thu gọn' : 'Trạng thái'}</span>
+              </button>
+
+              {/* Collapse Commentary Button */}
+              <button
+                type="button"
+                onClick={() => setIsCommentaryMinimized(true)}
+                className="text-stone-400 hover:text-stone-200 p-1 rounded hover:bg-white/10 transition"
+                title="Thu gọn thanh bình luận"
+              >
+                <ChevronUp className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ROW 2: COMPACT REAL-TIME CAT STATUS HUD (BẢNG TRẠNG THÁI TỪNG CHÚ MÈO) */}
+        {showCatStatusHud && (
+          <div className="px-3 sm:px-4 pb-2 pt-1 border-t border-white/10 bg-[#080B0F]/90">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[10px] font-bold uppercase text-amber-400 tracking-wider flex items-center gap-1">
+                <span>📊</span>
+                <span>BẢNG TRẠNG THÁI TUYỂN THỦ</span>
               </span>
               <span className="text-[10px] text-stone-400 font-mono">
-                {racers.length} Tuyển thủ • Cập nhật tức thì
+                {racers.length} Tuyển thủ
               </span>
             </div>
 
             {/* Grid of Racer Status Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1.5">
               {racers.map((racer) => {
                 const st = getRacerLiveStatus(racer);
                 return (
                   <div
                     key={racer.id}
-                    className={`p-2 rounded-xl border flex flex-col gap-1.5 transition-all duration-200 select-none shadow-sm ${st.cardBorder}`}
+                    className={`p-1.5 rounded-lg border flex items-center justify-between gap-1 transition-all duration-200 select-none shadow-sm ${st.cardBorder}`}
                   >
-                    <div className="flex items-center justify-between gap-1.5">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <span
-                          className="w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center font-black text-[10px] sm:text-xs text-white border border-white/60 flex-shrink-0 shadow-sm"
-                          style={{ backgroundColor: racer.furColor || '#E06D28' }}
-                        >
-                          {racer.number}
-                        </span>
-                        <span className="font-black text-xs sm:text-sm text-white truncate" title={racer.name}>
-                          {racer.name}
-                        </span>
-                      </div>
-                      <span className="text-[10px] font-mono text-stone-400 font-bold flex-shrink-0">
-                        {Math.round(positions[racer.id] || 0)}%
+                    <div className="flex items-center gap-1 min-w-0">
+                      <span
+                        className="w-4 h-4 rounded-full flex items-center justify-center font-black text-[9px] text-white border border-white/60 shrink-0"
+                        style={{ backgroundColor: racer.furColor || '#E06D28' }}
+                      >
+                        {racer.number}
+                      </span>
+                      <span className="font-bold text-[11px] text-white truncate max-w-[60px]" title={racer.name}>
+                        {racer.name}
                       </span>
                     </div>
-
-                    {/* Animated Live Status Badge */}
-                    <div className={`px-2 py-0.5 rounded-lg text-[10px] sm:text-[11px] text-center truncate flex items-center justify-center gap-1 ${st.className}`}>
-                      <span>{st.icon}</span>
-                      <span className="truncate">{st.badge}</span>
-                    </div>
+                    <span className="text-[10px] font-mono text-stone-300 font-bold shrink-0">
+                      {Math.round(positions[racer.id] || 0)}%
+                    </span>
                   </div>
                 );
               })}
@@ -1964,9 +2920,40 @@ export default function CatRaceTimer() {
       </div>
 
       {/* ==================================================================== */}
-      {/* 2. THE ATHLETIC RUNNING TRACK (Terracotta Sports Surface & Lanes)      */}
+      {/* 2. THE ATHLETIC RUNNING TRACK / CHRISTMAS FROZEN ICE TRACK             */}
       {/* ==================================================================== */}
-      <div className="relative flex-1 bg-[#B83A26] overflow-y-auto max-h-[640px] flex flex-col py-2 sm:py-3 select-none">
+      <div
+        className={`relative flex-1 ${
+          fitScreenMode ? 'overflow-hidden' : 'overflow-y-auto'
+        } flex flex-col justify-evenly py-1 select-none transition-colors duration-500 ${
+          trackTheme === 'christmas'
+            ? 'bg-gradient-to-b from-[#081B33] via-[#0369A1] to-[#0A2540]'
+            : 'bg-[#B83A26]'
+        }`}
+      >
+        {/* Christmas Falling Snowflakes Overlay */}
+        {trackTheme === 'christmas' && (
+          <div className="absolute inset-0 pointer-events-none overflow-hidden z-15">
+            {Array.from({ length: 32 }).map((_, i) => (
+              <div
+                key={i}
+                className="absolute text-white select-none animate-[snowFall_6s_linear_infinite]"
+                style={{
+                  left: `${(i * 3.1) % 100}%`,
+                  top: `-${(i * 15) % 50}px`,
+                  fontSize: `${9 + (i % 5) * 3.5}px`,
+                  animationDuration: `${3.8 + (i % 6) * 1.1}s`,
+                  animationDelay: `${(i * 0.23) % 4}s`,
+                  opacity: 0.35 + (i % 4) * 0.18,
+                  textShadow: '0 0 6px rgba(255,255,255,0.8)'
+                }}
+              >
+                ❄
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Moving track lines & athletic road texture */}
         <div
           className={`absolute inset-0 flex pointer-events-none select-none ${
@@ -1977,36 +2964,46 @@ export default function CatRaceTimer() {
           {/* Segment A */}
           <div className="w-1/2 h-full relative overflow-hidden">
             <svg className="w-full h-full opacity-35" preserveAspectRatio="none" viewBox="0 0 1200 400">
-              <line x1="0" y1="35" x2="1200" y2="35" stroke="#FFFFFF" strokeWidth="2.5" strokeDasharray="30 25" />
-              <line x1="0" y1="95" x2="1200" y2="95" stroke="#FFFFFF" strokeWidth="2.5" strokeDasharray="30 25" />
-              <line x1="0" y1="155" x2="1200" y2="155" stroke="#FFFFFF" strokeWidth="2.5" strokeDasharray="30 25" />
-              <line x1="0" y1="215" x2="1200" y2="215" stroke="#FFFFFF" strokeWidth="2.5" strokeDasharray="30 25" />
-              <line x1="0" y1="275" x2="1200" y2="275" stroke="#FFFFFF" strokeWidth="2.5" strokeDasharray="30 25" />
-              <line x1="0" y1="335" x2="1200" y2="335" stroke="#FFFFFF" strokeWidth="2.5" strokeDasharray="30 25" />
+              <line x1="0" y1="35" x2="1200" y2="35" stroke={trackTheme === 'christmas' ? '#BAE6FD' : '#FFFFFF'} strokeWidth="2.5" strokeDasharray="30 25" />
+              <line x1="0" y1="95" x2="1200" y2="95" stroke={trackTheme === 'christmas' ? '#BAE6FD' : '#FFFFFF'} strokeWidth="2.5" strokeDasharray="30 25" />
+              <line x1="0" y1="155" x2="1200" y2="155" stroke={trackTheme === 'christmas' ? '#BAE6FD' : '#FFFFFF'} strokeWidth="2.5" strokeDasharray="30 25" />
+              <line x1="0" y1="215" x2="1200" y2="215" stroke={trackTheme === 'christmas' ? '#BAE6FD' : '#FFFFFF'} strokeWidth="2.5" strokeDasharray="30 25" />
+              <line x1="0" y1="275" x2="1200" y2="275" stroke={trackTheme === 'christmas' ? '#BAE6FD' : '#FFFFFF'} strokeWidth="2.5" strokeDasharray="30 25" />
+              <line x1="0" y1="335" x2="1200" y2="335" stroke={trackTheme === 'christmas' ? '#BAE6FD' : '#FFFFFF'} strokeWidth="2.5" strokeDasharray="30 25" />
             </svg>
           </div>
           {/* Segment B (duplicate for infinite seamless translation) */}
           <div className="w-1/2 h-full relative overflow-hidden">
             <svg className="w-full h-full opacity-35" preserveAspectRatio="none" viewBox="0 0 1200 400">
-              <line x1="0" y1="35" x2="1200" y2="35" stroke="#FFFFFF" strokeWidth="2.5" strokeDasharray="30 25" />
-              <line x1="0" y1="95" x2="1200" y2="95" stroke="#FFFFFF" strokeWidth="2.5" strokeDasharray="30 25" />
-              <line x1="0" y1="155" x2="1200" y2="155" stroke="#FFFFFF" strokeWidth="2.5" strokeDasharray="30 25" />
-              <line x1="0" y1="215" x2="1200" y2="215" stroke="#FFFFFF" strokeWidth="2.5" strokeDasharray="30 25" />
-              <line x1="0" y1="275" x2="1200" y2="275" stroke="#FFFFFF" strokeWidth="2.5" strokeDasharray="30 25" />
-              <line x1="0" y1="335" x2="1200" y2="335" stroke="#FFFFFF" strokeWidth="2.5" strokeDasharray="30 25" />
+              <line x1="0" y1="35" x2="1200" y2="35" stroke={trackTheme === 'christmas' ? '#BAE6FD' : '#FFFFFF'} strokeWidth="2.5" strokeDasharray="30 25" />
+              <line x1="0" y1="95" x2="1200" y2="95" stroke={trackTheme === 'christmas' ? '#BAE6FD' : '#FFFFFF'} strokeWidth="2.5" strokeDasharray="30 25" />
+              <line x1="0" y1="155" x2="1200" y2="155" stroke={trackTheme === 'christmas' ? '#BAE6FD' : '#FFFFFF'} strokeWidth="2.5" strokeDasharray="30 25" />
+              <line x1="0" y1="215" x2="1200" y2="215" stroke={trackTheme === 'christmas' ? '#BAE6FD' : '#FFFFFF'} strokeWidth="2.5" strokeDasharray="30 25" />
+              <line x1="0" y1="275" x2="1200" y2="275" stroke={trackTheme === 'christmas' ? '#BAE6FD' : '#FFFFFF'} strokeWidth="2.5" strokeDasharray="30 25" />
+              <line x1="0" y1="335" x2="1200" y2="335" stroke={trackTheme === 'christmas' ? '#BAE6FD' : '#FFFFFF'} strokeWidth="2.5" strokeDasharray="30 25" />
             </svg>
           </div>
         </div>
 
-        {/* STARTING LINE (Left Side): Checkered Start Line & Starting Block Base */}
+        {/* STARTING LINE (Left Side): Checkered Start Line or Candy Cane Peppermint Pillars */}
         <div className="absolute left-0 top-0 bottom-0 w-12 sm:w-16 z-20 pointer-events-none flex">
           <div className="w-5 sm:w-6 h-full flex flex-col border-r-2 border-white/80 overflow-hidden shadow-lg">
             {Array.from({ length: 48 }).map((_, i) => (
               <div
                 key={i}
-                className={`h-4 w-full flex ${i % 2 === 0 ? 'bg-black' : 'bg-white'}`}
+                className={`h-4 w-full flex ${
+                  trackTheme === 'christmas'
+                    ? i % 2 === 0 ? 'bg-red-600' : 'bg-white'
+                    : i % 2 === 0 ? 'bg-black' : 'bg-white'
+                }`}
               >
-                <div className={`w-1/2 h-full ${i % 2 === 0 ? 'bg-white' : 'bg-black'}`} />
+                <div
+                  className={`w-1/2 h-full ${
+                    trackTheme === 'christmas'
+                      ? i % 2 === 0 ? 'bg-white' : 'bg-red-600'
+                      : i % 2 === 0 ? 'bg-white' : 'bg-black'
+                  }`}
+                />
               </div>
             ))}
           </div>
@@ -2018,32 +3015,54 @@ export default function CatRaceTimer() {
           style={{ left: '80%', transform: 'translateX(-50%)' }}
         >
           {/* Overhead Banner */}
-          <div className="absolute top-1 z-30 bg-red-600 text-white font-black text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full shadow-lg border-2 border-white flex items-center gap-1 whitespace-nowrap animate-pulse">
-            🏁 VẠCH ĐÍCH • FINISH
+          <div
+            className={`absolute top-1 z-30 font-black text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full shadow-lg border-2 border-white flex items-center gap-1 whitespace-nowrap animate-pulse ${
+              trackTheme === 'christmas'
+                ? 'bg-gradient-to-r from-red-600 via-rose-600 to-emerald-600 text-yellow-200 ring-2 ring-yellow-300'
+                : 'bg-red-600 text-white'
+            }`}
+          >
+            {trackTheme === 'christmas' ? '🎄 VẠCH ĐÍCH GIÁNG SINH • FINISH 🎅' : '🏁 VẠCH ĐÍCH • FINISH'}
           </div>
 
-          {/* Checkered Ribbon Poles */}
+          {/* Ribbon Poles */}
           <div className="w-5 sm:w-6 h-full flex flex-col border-x-2 border-white/90 shadow-2xl overflow-hidden bg-black/20">
             {Array.from({ length: 48 }).map((_, i) => (
               <div
                 key={i}
-                className={`h-4 w-full flex ${i % 2 === 0 ? 'bg-black' : 'bg-white'}`}
+                className={`h-4 w-full flex ${
+                  trackTheme === 'christmas'
+                    ? i % 2 === 0 ? 'bg-red-600' : 'bg-white'
+                    : i % 2 === 0 ? 'bg-black' : 'bg-white'
+                }`}
               >
-                <div className={`w-1/2 h-full ${i % 2 === 0 ? 'bg-white' : 'bg-black'}`} />
+                <div
+                  className={`w-1/2 h-full ${
+                    trackTheme === 'christmas'
+                      ? i % 2 === 0 ? 'bg-white' : 'bg-red-600'
+                      : i % 2 === 0 ? 'bg-white' : 'bg-black'
+                  }`}
+                />
               </div>
             ))}
           </div>
 
           {/* Ribbon Cut Banner if first cat crossed */}
           {firstCrossedId && (
-            <div className="absolute top-1/2 -translate-y-1/2 bg-yellow-400 text-black font-black text-[10px] px-2.5 py-1 rounded-full shadow-lg border-2 border-black whitespace-nowrap animate-bounce z-30">
-              💥 ĐÃ CẮT BĂNG VỀ ĐÍCH!
+            <div
+              className={`absolute top-1/2 -translate-y-1/2 font-black text-[10px] px-2.5 py-1 rounded-full shadow-lg border-2 whitespace-nowrap animate-bounce z-30 ${
+                trackTheme === 'christmas'
+                  ? 'bg-red-600 text-yellow-300 border-yellow-300 shadow-[0_0_15px_rgba(255,215,0,0.8)]'
+                  : 'bg-yellow-400 text-black border-black'
+              }`}
+            >
+              {trackTheme === 'christmas' ? '🔔 TUẦN LỘC ĐÃ CẮT BĂNG VỀ ĐÍCH! 🎁' : '💥 ĐÃ CẮT BĂNG VỀ ĐÍCH!'}
             </div>
           )}
 
           {/* Bottom Coordinate Indicator */}
           <div className="absolute bottom-1 z-30 bg-black/85 text-yellow-300 font-black text-[9px] px-2 py-0.5 rounded shadow border border-white/20 whitespace-nowrap">
-            VẠCH ĐÍCH (100%)
+            {trackTheme === 'christmas' ? 'VẠCH ĐÍCH NOEL (100%)' : 'VẠCH ĐÍCH (100%)'}
           </div>
         </div>
 
@@ -2052,15 +3071,91 @@ export default function CatRaceTimer() {
           className="absolute top-0 bottom-0 right-0 z-0 pointer-events-none overflow-hidden"
           style={{ left: '80%' }}
         >
-          <div className="w-full h-full bg-gradient-to-r from-amber-600/35 via-yellow-500/25 to-amber-700/35 flex flex-col justify-center items-center border-l-2 border-yellow-400/50">
-            <span className="text-white/25 font-black text-xl sm:text-2xl tracking-widest uppercase select-none text-center">
-              🏆 VÙNG VỀ ĐÍCH
+          <div
+            className={`w-full h-full flex flex-col justify-center items-center border-l-2 ${
+              trackTheme === 'christmas'
+                ? 'bg-gradient-to-r from-cyan-900/40 via-sky-800/30 to-blue-950/50 border-cyan-300/60'
+                : 'bg-gradient-to-r from-amber-600/35 via-yellow-500/25 to-amber-700/35 border-yellow-400/50'
+            }`}
+          >
+            <span
+              className={`font-black text-xl sm:text-2xl tracking-widest uppercase select-none text-center ${
+                trackTheme === 'christmas' ? 'text-cyan-100/50 drop-shadow' : 'text-white/25'
+              }`}
+            >
+              {trackTheme === 'christmas' ? '🎄 BẮC CỰC • NORTH POLE ❄️' : '🏆 VÙNG VỀ ĐÍCH'}
             </span>
-            <span className="text-yellow-200/40 font-bold text-[10px] tracking-wider uppercase select-none text-center">
-              Sau vạch đích • Quán quân
+            <span
+              className={`font-bold text-[10px] tracking-wider uppercase select-none text-center ${
+                trackTheme === 'christmas' ? 'text-yellow-200/60' : 'text-yellow-200/40'
+              }`}
+            >
+              {trackTheme === 'christmas' ? 'Xứ Sở Tuyết Trắng • Chúc Mừng Quán Quân! 🎁' : 'Sau vạch đích • Quán quân'}
             </span>
           </div>
         </div>
+
+        {/* ================================================================== */}
+        {/* IQ RACE CHECKPOINT GATES & MARKER POLES ACROSS RUNNING TRACK       */}
+        {/* ================================================================== */}
+        {gameMode === 'iq_race' && currentCheckpoints.map((cp, idx) => {
+          const cpLeft = 7 + (cp.pos / 100) * 73;
+          const isPassed = Boolean(passedCheckpoints[cp.id]);
+          const passedInfo = passedCheckpoints[cp.id];
+
+          return (
+            <div
+              key={cp.id}
+              className="absolute top-0 bottom-0 pointer-events-none z-20 flex flex-col items-center justify-between"
+              style={{ left: `${cpLeft}%`, transform: 'translateX(-50%)' }}
+            >
+              {/* Top Flag / Badge */}
+              <div
+                className={`px-2 py-0.5 rounded-full text-[10px] font-black shadow-lg border flex items-center gap-1 -mt-1 select-none transition-all duration-300 ${
+                  isPassed
+                    ? 'bg-emerald-600 text-white border-emerald-300 ring-2 ring-emerald-400/50'
+                    : trackTheme === 'christmas'
+                    ? 'bg-red-800 text-yellow-300 border-yellow-300 ring-2 ring-emerald-400/60 animate-pulse'
+                    : 'bg-indigo-900 text-yellow-300 border-yellow-400 ring-2 ring-yellow-400/40 animate-pulse'
+                }`}
+              >
+                <span>{isPassed ? '✅' : cp.icon}</span>
+                <span className="whitespace-nowrap">
+                  {cp.name} ({cp.pos}%)
+                </span>
+              </div>
+
+              {/* Checkpoint Vertical Striped Gate Line */}
+              <div
+                className={`w-1.5 h-full transition-all duration-300 ${
+                  isPassed
+                    ? 'bg-emerald-400/80 shadow-[0_0_12px_rgba(52,211,153,0.8)]'
+                    : trackTheme === 'christmas'
+                    ? 'bg-rose-500/80 shadow-[0_0_12px_rgba(244,63,94,0.8)] border-x border-white/40'
+                    : 'bg-yellow-400/80 shadow-[0_0_12px_rgba(250,204,21,0.8)] border-x border-black/40'
+                }`}
+                style={{
+                  backgroundImage: isPassed
+                    ? 'repeating-linear-gradient(45deg, #10B981, #10B981 8px, #059669 8px, #059669 16px)'
+                    : trackTheme === 'christmas'
+                    ? 'repeating-linear-gradient(45deg, #DC2626, #DC2626 8px, #FFFFFF 8px, #FFFFFF 16px)'
+                    : 'repeating-linear-gradient(45deg, #FACC15, #FACC15 8px, #1F2937 8px, #1F2937 16px)'
+                }}
+              />
+
+              {/* Bottom Target Label */}
+              <div
+                className={`px-2 py-0.5 rounded-md text-[9px] font-mono font-bold shadow-md border mb-1 select-none whitespace-nowrap ${
+                  isPassed
+                    ? 'bg-black/90 text-emerald-300 border-emerald-400/50'
+                    : 'bg-black/90 text-yellow-300 border-yellow-400/50'
+                }`}
+              >
+                {isPassed ? `🔓 #${passedInfo?.racerNumber} ${passedInfo?.racerName}` : (trackTheme === 'christmas' ? `Trạm Noel ${idx + 1}` : `Trạm ${idx + 1}`)}
+              </div>
+            </div>
+          );
+        })}
 
         {/* ALL RACING LANES (Unlimited: Each lane has its bold painted number + running cat actor) */}
         {racers.map((racer) => {
@@ -2078,15 +3173,19 @@ export default function CatRaceTimer() {
           return (
             <div
               key={racer.id}
-              className={`relative ${laneHeightClass} flex items-center px-2 z-10 border-b-2 border-white/35 border-dashed`}
+              className={`relative ${laneHeightClass} flex items-center px-1 sm:px-2 z-10 border-b border-dashed ${
+                trackTheme === 'christmas' ? 'border-cyan-200/30' : 'border-white/35'
+              }`}
             >
               {/* BOLD WHITE NUMBER PAINTED ON TRACK */}
-              <div className="absolute left-8 sm:left-10 z-10 pointer-events-none select-none">
+              <div className="absolute left-6 sm:left-10 z-10 pointer-events-none select-none">
                 <span
-                  className="font-black text-2xl sm:text-4xl text-white opacity-85"
+                  className={`font-black text-xl sm:text-2xl md:text-3xl ${
+                    trackTheme === 'christmas' ? 'text-cyan-100/90 drop-shadow-[0_2px_8px_rgba(56,189,248,0.5)]' : 'text-white opacity-85'
+                  }`}
                   style={{
                     fontFamily: 'Impact, Arial Black, Montserrat, sans-serif',
-                    textShadow: '0 2px 4px rgba(0,0,0,0.6)'
+                    textShadow: trackTheme === 'christmas' ? '0 0 10px rgba(186,230,253,0.8), 0 2px 4px rgba(0,0,0,0.8)' : '0 2px 4px rgba(0,0,0,0.6)'
                   }}
                 >
                   {racer.number}
@@ -2129,6 +3228,7 @@ export default function CatRaceTimer() {
                   isWinner={isWin || isFirstAcross}
                   isLeader={isLead}
                   effect={catEffects[racer.id]}
+                  trackTheme={trackTheme}
                 />
 
                 {/* Name / Jersey Tag below Cat with 1-Click Inline Rename & Color Picker */}
@@ -2266,6 +3366,117 @@ export default function CatRaceTimer() {
             {/* ================================================================ */}
             {settingsTab === 'general' && (
               <div className="space-y-4">
+                {/* THEME SELECTOR: CHRISTMAS REINDEER VS CLASSIC STADIUM */}
+                <div className="p-3.5 bg-gradient-to-r from-red-50 via-emerald-50 to-sky-50 rounded-2xl border-2 border-red-200 space-y-2.5">
+                  <span className="text-xs font-black uppercase text-red-900 block flex items-center gap-1.5">
+                    <span>🦌</span>
+                    <span>Chủ đề đường đua (Track Theme):</span>
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleChangeTrackTheme('christmas')}
+                      className={`p-3 rounded-xl border text-left transition ${
+                        trackTheme === 'christmas'
+                          ? 'bg-gradient-to-r from-red-600 via-rose-600 to-emerald-600 text-white border-red-700 shadow-md ring-2 ring-yellow-300'
+                          : 'bg-white text-stone-700 border-stone-200 hover:bg-stone-50'
+                      }`}
+                    >
+                      <div className="font-black text-xs flex items-center gap-1.5">
+                        <span>🦌🎄</span>
+                        <span>Đường Đua Giáng Sinh (Tuần Lộc)</span>
+                      </div>
+                      <div className={`text-[10px] mt-1 leading-snug ${trackTheme === 'christmas' ? 'text-yellow-100' : 'text-stone-500'}`}>
+                        Mèo cưỡi tuần lộc Rudolph mũi đỏ trên đường băng tuyết mùa đông, tuyết rơi lấp lánh & chuông leng keng!
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleChangeTrackTheme('stadium')}
+                      className={`p-3 rounded-xl border text-left transition ${
+                        trackTheme === 'stadium'
+                          ? 'bg-[#B83A26] text-white border-red-900 shadow-md ring-2 ring-yellow-400'
+                          : 'bg-white text-stone-700 border-stone-200 hover:bg-stone-50'
+                      }`}
+                    >
+                      <div className="font-black text-xs flex items-center gap-1.5">
+                        <span>🏟️🏃</span>
+                        <span>Sân Điền Kinh Truyền Thống</span>
+                      </div>
+                      <div className={`text-[10px] mt-1 leading-snug ${trackTheme === 'stadium' ? 'text-amber-100' : 'text-stone-500'}`}>
+                        Mặt sân đất nung thể thao tiêu chuẩn Olympic, vạch kẻ ô cờ và vạch đích thể thao.
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 0. DUAL GAME MODE SELECTOR */}
+                <div className="p-3.5 bg-gradient-to-r from-purple-50 via-indigo-50 to-purple-50 rounded-2xl border-2 border-purple-200 space-y-2.5">
+                  <span className="text-xs font-black uppercase text-purple-900 block flex items-center gap-1.5">
+                    <Brain className="w-4 h-4 text-purple-600" />
+                    <span>Chế độ chơi (Game Mode):</span>
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleChangeGameMode('iq_race')}
+                      className={`p-3 rounded-xl border text-left transition ${
+                        gameMode === 'iq_race'
+                          ? 'bg-purple-600 text-white border-purple-700 shadow-md ring-2 ring-purple-300'
+                          : 'bg-white text-stone-700 border-stone-200 hover:bg-stone-50'
+                      }`}
+                    >
+                      <div className="font-black text-xs flex items-center gap-1.5">
+                        <span>🧠</span>
+                        <span>Cuộc Đua Trí Tuệ (Trạm Quiz)</span>
+                      </div>
+                      <div className={`text-[10px] mt-1 leading-snug ${gameMode === 'iq_race' ? 'text-purple-100' : 'text-stone-500'}`}>
+                        Mèo nào chạy tới trạm trước, học sinh đó được mời trả lời câu hỏi! Đúng +10m, Sai -5m!
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleChangeGameMode('timer')}
+                      className={`p-3 rounded-xl border text-left transition ${
+                        gameMode === 'timer'
+                          ? 'bg-[#1F2421] text-white border-black shadow-md ring-2 ring-yellow-400'
+                          : 'bg-white text-stone-700 border-stone-200 hover:bg-stone-50'
+                      }`}
+                    >
+                      <div className="font-black text-xs flex items-center gap-1.5">
+                        <span>⏱️</span>
+                        <span>Đua Đếm Giờ Thuần Túy</span>
+                      </div>
+                      <div className={`text-[10px] mt-1 leading-snug ${gameMode === 'timer' ? 'text-stone-300' : 'text-stone-500'}`}>
+                        Đếm ngược thời gian làm bài, chú mèo chạy qua hết vạch nhanh nhất sẽ giành chiến thắng!
+                      </div>
+                    </button>
+                  </div>
+
+                  {gameMode === 'iq_race' && quizzes && quizzes.length > 0 && (
+                    <div className="pt-2 border-t border-purple-200/60 flex items-center justify-between gap-2 flex-wrap text-xs">
+                      <span className="font-bold text-purple-900 flex items-center gap-1">
+                        <BookOpen className="w-3.5 h-3.5" />
+                        <span>Bộ câu hỏi áp dụng cho các trạm:</span>
+                      </span>
+                      <select
+                        value={activeQuizId}
+                        onChange={(e) => handleSelectQuizForIQ(e.target.value)}
+                        className="bg-white text-purple-950 font-bold px-3 py-1.5 rounded-xl border border-purple-300 outline-none text-xs"
+                      >
+                        <option value="">8 Câu Đố Tiếng Anh & Trí Tuệ (Mặc định)</option>
+                        {quizzes.map((q) => (
+                          <option key={q.id} value={q.id}>
+                            {q.title} ({q.questions?.length || 0} câu)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+
                 {/* 1. Quick Presets for Countdown */}
                 <div>
                   <label className="text-xs font-black uppercase text-stone-500 block mb-2">
@@ -2405,12 +3616,12 @@ export default function CatRaceTimer() {
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => speech.speakVietnamese("Trời đất ơi bạn Ánh đá bạn Vi! Nhưng không bạn Bình không cho phép, bạn Bình đã nhanh hơn! Bạn Ánh đã bị té lăn quay các kiểu!")}
+                        onClick={() => speech.speakEnglish("Unbelievable! Racer Number One takes the lead with a rocket burst! What a fantastic comeback!")}
                         className="px-2.5 py-1 text-[11px] font-bold bg-amber-100 text-amber-800 hover:bg-amber-200 rounded-lg flex items-center gap-1 transition"
-                        title="Nghe thử giọng BLV Chị Google"
+                        title="Test Live English Caster Voice"
                       >
                         <Volume2 className="w-3.5 h-3.5" />
-                        Nghe thử BLV
+                        Test Caster
                       </button>
                       <input
                         type="checkbox"
@@ -2424,24 +3635,24 @@ export default function CatRaceTimer() {
                   <div className="flex items-center justify-between p-2.5 rounded-xl hover:bg-stone-50 border border-stone-200/60">
                     <div>
                       <div className="flex items-center gap-1.5">
-                        <span className="font-bold text-stone-700 text-xs sm:text-sm">Xướng tên mèo vô địch bằng tiếng Việt:</span>
+                        <span className="font-bold text-stone-700 text-xs sm:text-sm">Xướng tên nhà vô địch (Natural English Voice):</span>
                         <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase">
-                          ⭐ Chị Google Chuẩn 100%
+                          ⭐ Natural English
                         </span>
                       </div>
                       <span className="text-[11px] text-stone-500 block mt-0.5">
-                        Tự nhiên, ấm áp, phát âm tiếng Việt chuẩn xác không méo tiếng.
+                        Giọng đọc tiếng Anh tự nhiên, chuẩn xác, phát âm rõ ràng và truyền cảm.
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => speech.speakVietnamese("Chúc mừng Mèo số một, Miu Miu Quàng Khăn đã giành chiến thắng!")}
+                        onClick={() => speech.speakEnglish("Congratulations Racer Number One, the grand champion of the race!")}
                         className="px-2.5 py-1 text-[11px] font-bold bg-amber-100 text-amber-800 hover:bg-amber-200 rounded-lg flex items-center gap-1 transition"
-                        title="Nghe thử giọng tiếng Việt Chị Google"
+                        title="Nghe thử giọng tiếng Anh tự nhiên"
                       >
                         <Volume2 className="w-3.5 h-3.5" />
-                        Nghe thử
+                        Test Voice
                       </button>
                       <input
                         type="checkbox"
@@ -2933,17 +4144,22 @@ export default function CatRaceTimer() {
               ))}
             </div>
 
-            {/* Replay Vietnamese Voice Button */}
+            {/* Replay English Voice Button */}
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() =>
-                  speech.speakVietnamese(`Chúc mừng Mèo số ${winner.number}, ${winner.name} đã chạy qua vạch đích nhanh nhất và giành chiến thắng!`)
+                  speech.speakEnglish(
+                    trackTheme === 'christmas'
+                      ? `Merry Christmas! Congratulations Reindeer Number ${winner.number}, ${winner.name}! You won the North Pole championship!`
+                      : `Congratulations Racer Number ${winner.number}, ${winner.name}! You crossed the finish line first and won the championship!`
+                  )
                 }
                 className="flex-1 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl border border-stone-200 transition flex items-center justify-center gap-1.5"
+                title="Replay English voice announcement"
               >
                 <Volume2 className="w-4 h-4 text-[#A67C1E]" />
-                <span>Nghe Lại</span>
+                <span>Replay (English)</span>
               </button>
 
               <button
@@ -2953,6 +4169,240 @@ export default function CatRaceTimer() {
               >
                 <RotateCcw className="w-4 h-4" />
                 <span>Đua Lại</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================================================================== */}
+      {/* 5. CUỘC ĐUA TRÍ TUỆ: CHECKPOINT QUESTION TV POPUP MODAL               */}
+      {/* "mèo nào lên nhanh nhất mèo đó phải trả lời 1 câu hỏi hiện lên màn hình" */}
+      {/* "dù bạn ấy ko giơ tay nhưng con mèo nó chạy lên trước tới trạm trước"   */}
+      {/* ==================================================================== */}
+      {activeCheckpointModal && (
+        <div className="absolute inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fade-in select-none">
+          <div className="bg-[#10141D] border-4 border-yellow-400 rounded-3xl p-5 sm:p-7 max-w-2xl w-full text-white shadow-[0_0_60px_rgba(250,204,21,0.35)] relative flex flex-col gap-4 max-h-[92vh] overflow-y-auto">
+            {/* Top Station Badge & Progress */}
+            <div className="flex items-center justify-between pb-3 border-b border-white/15 flex-wrap gap-2">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-xl shadow-md border border-purple-300">
+                  {activeCheckpointModal.checkpoint.icon || '🧠'}
+                </div>
+                <div>
+                  <span className="text-[10px] sm:text-[11px] font-black uppercase text-amber-400 tracking-wider block">
+                    CUỘC ĐUA TRÍ TUỆ • TRẠM {activeCheckpointModal.checkpointIndex + 1}/3
+                  </span>
+                  <h3 className="text-lg sm:text-xl font-black text-white font-brand">
+                    {activeCheckpointModal.checkpoint.name} ({activeCheckpointModal.checkpoint.pos}% Đường Đua)
+                  </h3>
+                </div>
+              </div>
+
+              {/* Station Step Indicator */}
+              <div className="flex items-center gap-1.5 bg-black/50 px-3 py-1.5 rounded-xl border border-white/10">
+                {currentCheckpoints.map((cp, idx) => {
+                  const isCurrent = idx === activeCheckpointModal.checkpointIndex;
+                  const isDone = Boolean(passedCheckpoints[cp.id]) && !isCurrent;
+                  return (
+                    <div
+                      key={cp.id}
+                      className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black transition-all ${
+                        isCurrent
+                          ? 'bg-yellow-400 text-black scale-110 ring-2 ring-yellow-300'
+                          : isDone
+                          ? 'bg-emerald-500 text-white'
+                          : 'bg-stone-700 text-stone-400'
+                      }`}
+                      title={cp.name}
+                    >
+                      {idx + 1}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* CLASSROOM INTERACTION SPOTLIGHT BANNER: Direct Student Callout */}
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-amber-500/20 via-yellow-500/15 to-amber-600/20 border-2 border-yellow-400/80 shadow-lg flex items-center gap-3.5">
+              {/* Cat Avatar Circle */}
+              <div
+                className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border-2 border-white/80 shadow-md flex-shrink-0 flex items-center justify-center relative"
+                style={{ backgroundColor: activeCheckpointModal.racer.furColor || '#E06D28' }}
+              >
+                <span className="text-2xl sm:text-3xl">🐱</span>
+                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-white text-stone-900 font-black text-[10px] flex items-center justify-center shadow">
+                  {activeCheckpointModal.racer.number}
+                </span>
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <span className="text-[10px] font-black uppercase text-yellow-300 tracking-wider block flex items-center gap-1">
+                  <span>🎯</span>
+                  <span>TIÊU ĐIỂM GỌI TÊN HỌC SINH DẪN ĐẦU TRẠM:</span>
+                </span>
+                <p className="text-sm sm:text-base font-black text-white leading-snug mt-0.5">
+                  Dù bạn <span className="text-yellow-300 underline font-extrabold">{activeCheckpointModal.racer.name}</span> không giơ tay, nhưng mèo của bạn đã chạy tới trạm trước tiên! Xin mời bạn trả lời câu hỏi!
+                </p>
+              </div>
+            </div>
+
+            {/* QUESTION CARD */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-[#18202F] border border-white/15 space-y-3 shadow-inner">
+              <div className="flex items-center justify-between text-[11px] text-stone-400 font-bold">
+                <span className="flex items-center gap-1 text-purple-300">
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>Câu hỏi {(activeCheckpointModal.qIndex || 0) + 1}/{activeCheckpointModal.questionList?.length || 1}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={handleSwitchCheckpointQuestion}
+                  className="hover:text-yellow-300 text-stone-300 text-[11px] font-bold flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 transition border border-white/10"
+                  title="Đổi sang câu hỏi khác trong danh sách"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Đổi câu hỏi khác</span>
+                </button>
+              </div>
+
+              <h4 className="text-base sm:text-xl font-bold text-white leading-relaxed">
+                {activeCheckpointModal.question?.text || 'Câu hỏi kiến thức'}
+              </h4>
+            </div>
+
+            {/* 4 ANSWER OPTIONS (A, B, C, D) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {(activeCheckpointModal.question?.options || []).map((opt, optIdx) => {
+                const optLetter = String.fromCharCode(65 + optIdx);
+                const isSelected = activeCheckpointModal.selectedOption === optIdx;
+                const isRevealed = activeCheckpointModal.isRevealed;
+                const isOptCorrect = Boolean(
+                  opt?.isCorrect ||
+                  (activeCheckpointModal.question?.correctAnswer && opt?.text === activeCheckpointModal.question?.correctAnswer)
+                );
+
+                let btnStyle = 'bg-[#1C2538] hover:bg-[#25324B] border-white/15 text-white';
+                if (isRevealed) {
+                  if (isOptCorrect) {
+                    btnStyle = 'bg-emerald-600/90 border-emerald-400 text-white ring-2 ring-emerald-300 font-black shadow-[0_0_15px_rgba(16,185,129,0.5)]';
+                  } else if (isSelected && !isOptCorrect) {
+                    btnStyle = 'bg-rose-700/80 border-rose-400 text-white/90 line-through';
+                  } else {
+                    btnStyle = 'bg-stone-900/60 border-white/5 text-stone-500 opacity-60';
+                  }
+                }
+
+                return (
+                  <button
+                    key={optIdx}
+                    type="button"
+                    onClick={() => handleSelectCheckpointOption(optIdx)}
+                    disabled={isRevealed}
+                    className={`p-3.5 rounded-2xl border-2 transition-all text-left flex items-center gap-3 active:scale-[0.99] select-none ${btnStyle}`}
+                  >
+                    <span
+                      className={`w-7 h-7 rounded-xl flex items-center justify-center font-black text-xs flex-shrink-0 shadow ${
+                        isRevealed && isOptCorrect
+                          ? 'bg-white text-emerald-700'
+                          : isRevealed && isSelected && !isOptCorrect
+                          ? 'bg-white text-rose-700'
+                          : 'bg-white/10 text-yellow-300 border border-white/20'
+                      }`}
+                    >
+                      {isRevealed && isOptCorrect ? '✓' : isRevealed && isSelected && !isOptCorrect ? '✗' : optLetter}
+                    </span>
+                    <span className="font-bold text-xs sm:text-sm flex-1 leading-snug">
+                      {opt?.text || String(opt)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* EXPLANATION & VERDICT FEEDBACK */}
+            {activeCheckpointModal.isRevealed && (
+              <div
+                className={`p-3.5 sm:p-4 rounded-2xl border-2 animate-fade-in flex flex-col gap-2 ${
+                  activeCheckpointModal.verdict === 'correct'
+                    ? 'bg-emerald-950/80 border-emerald-400 text-emerald-100 shadow-[0_0_20px_rgba(16,185,129,0.3)]'
+                    : 'bg-rose-950/80 border-rose-400 text-rose-100 shadow-[0_0_20px_rgba(244,63,94,0.3)]'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-black text-sm sm:text-base flex items-center gap-1.5">
+                    <span>{activeCheckpointModal.verdict === 'correct' ? '🎉 CHÍNH XÁC!' : '🍌 CHƯA CHÍNH XÁC!'}</span>
+                    <span className="text-xs font-bold opacity-90">
+                      {activeCheckpointModal.verdict === 'correct'
+                        ? '(Thưởng Phản Lực +10m Đường Đua 🚀)'
+                        : '(Bị Trượt Vỏ Chuối -5m Đường Đua 🍌)'}
+                    </span>
+                  </span>
+
+                  {/* Teacher verdict override toggles */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] text-stone-300">Giáo viên chấm lại:</span>
+                    <button
+                      type="button"
+                      onClick={() => handleTeacherOverrideVerdict(true)}
+                      className="px-2 py-0.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px]"
+                      title="Chấm Đúng"
+                    >
+                      ✓ Đúng
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleTeacherOverrideVerdict(false)}
+                      className="px-2 py-0.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-black text-[10px]"
+                      title="Chấm Sai"
+                    >
+                      ✗ Sai
+                    </button>
+                  </div>
+                </div>
+
+                {activeCheckpointModal.question?.explanation && (
+                  <p className="text-xs sm:text-sm text-stone-200 font-medium italic">
+                    {activeCheckpointModal.question.explanation}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* ACTION FOOTER */}
+            <div className="flex items-center justify-between pt-2 border-t border-white/10 gap-2 flex-wrap">
+              {/* Teacher Manual Verdict Bar if not yet revealed */}
+              {!activeCheckpointModal.isRevealed ? (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[11px] text-stone-400 font-bold">Giáo viên chấm trực tiếp:</span>
+                  <button
+                    type="button"
+                    onClick={() => handleTeacherOverrideVerdict(true)}
+                    className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow transition flex items-center gap-1"
+                  >
+                    <span>✅ Trả lời đúng (+10m)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleTeacherOverrideVerdict(false)}
+                    className="px-3 py-2 bg-rose-600 hover:bg-rose-500 text-white font-black text-xs rounded-xl shadow transition flex items-center gap-1"
+                  >
+                    <span>❌ Trả lời sai (-5m)</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="text-[11px] text-emerald-300 font-bold flex items-center gap-1">
+                  <span>✨</span>
+                  <span>Đã chấm xong! Bấm tiếp tục để cả lớp cùng đua tiếp!</span>
+                </div>
+              )}
+
+              {/* Big Resume Race Button */}
+              <button
+                type="button"
+                onClick={handleResumeRaceAfterCheckpoint}
+                className="px-5 sm:px-7 py-3 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 hover:brightness-110 text-stone-950 font-black text-sm sm:text-base rounded-2xl shadow-[0_0_25px_rgba(250,204,21,0.5)] transition active:scale-[0.98] flex items-center gap-2 ml-auto"
+              >
+                <span>▶️ TIẾP TỤC ĐUA SANG TRẠM TIẾP THEO</span>
               </button>
             </div>
           </div>

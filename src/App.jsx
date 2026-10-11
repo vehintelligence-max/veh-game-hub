@@ -18,12 +18,48 @@ import SideDrawer from './components/SideDrawer';
 import PowerUpLeaderboard from './components/PowerUpLeaderboard';
 import VHouseCurriculumHub from './components/VHouseCurriculumHub';
 import CatRaceTimer from './components/CatRaceTimer';
+import KidsArcade from './components/KidsArcade';
 import { defaultQuizzes } from './data/defaultQuizzes';
 import { Sparkles } from 'lucide-react';
 
 const SOCKET_SERVER_URL = window.location.origin.includes('5173')
   ? 'http://localhost:3000'
   : window.location.origin;
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error('ErrorBoundary caught error:', error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-6 bg-red-950/80 border-2 border-red-500 rounded-3xl text-white text-center max-w-xl mx-auto my-8 shadow-2xl">
+          <span className="text-4xl block mb-2">⚠️</span>
+          <h3 className="text-lg font-black text-yellow-300">Đã xảy ra sự cố khi tải trò chơi!</h3>
+          <p className="text-xs text-stone-300 mt-1 font-mono">{this.state.error?.message || 'Lỗi không xác định'}</p>
+          <button
+            type="button"
+            onClick={() => {
+              this.setState({ hasError: false, error: null });
+              window.location.reload();
+            }}
+            className="mt-4 px-4 py-2 bg-yellow-400 text-black font-black text-xs rounded-xl hover:brightness-105"
+          >
+            Tải lại trang (F5)
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 export default function App() {
   const [mainTab, setMainTab] = useState('arena'); // 'arena' | 'dictation' | 'tictac' | 'hangman' | 'practice' | 'flashcards' | 'wheel' | 'classes' | 'powerup'
@@ -148,7 +184,7 @@ export default function App() {
         setMainTab={setMainTab}
       />
 
-      <main className="container mx-auto py-3 px-2 sm:px-4 flex-1">
+      <main className={`mx-auto flex-1 ${mainTab === 'catrace' ? 'w-full px-1 sm:px-3 py-1 sm:py-2' : 'container py-3 px-2 sm:px-4'}`}>
         {/* TAB 1: ARENA (Kahoot Multiplayer Live) */}
         {mainTab === 'arena' && (
           <div>
@@ -210,11 +246,28 @@ export default function App() {
           />
         )}
 
-        {/* TAB: CUỘC ĐUA MÈO - CAT RACE COUNTDOWN TIMER */}
+        {/* TAB: CUỘC ĐUA MÈO - CAT RACE (ĐUA ĐẾM GIỜ & CUỘC ĐUA TRÍ TUỆ TRẠM QUIZ) */}
         {mainTab === 'catrace' && (
-          <div className="max-w-6xl mx-auto">
-            <CatRaceTimer />
+          <div className="w-full max-w-[1720px] mx-auto">
+            <ErrorBoundary>
+              <CatRaceTimer
+                quizzes={quizzes}
+                selectedQuiz={selectedQuiz}
+                onSelectQuiz={setSelectedQuiz}
+              />
+            </ErrorBoundary>
           </div>
+        )}
+
+        {/* TAB: KIDS ARCADE (WORD SCRAMBLE, WHAT'S MISSING, MEMORY MATCH) */}
+        {mainTab === 'kidsarcade' && (
+          <ErrorBoundary>
+            <KidsArcade
+              quizzes={quizzes}
+              selectedQuiz={selectedQuiz}
+              onSelectQuiz={setSelectedQuiz}
+            />
+          </ErrorBoundary>
         )}
 
         {/* TAB 2: DICTATION LAB (YouTube & Google Studio Voice Dictation) */}

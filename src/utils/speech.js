@@ -172,52 +172,38 @@ export const speech = {
 
   /**
    * Master speak method:
-   * Defaults to Google Studio Audio for Vietnamese (crystal-clear native Chị Google voice).
-   * Supports English studio stream or user-chosen Web Speech voice.
+   * Defaults to Natural English studio and system voices (Samantha, Google US English, Natural)
    */
-  speak(text, lang = null, speed = null) {
+  speak(text, lang = 'en-US', speed = null) {
     if (!text || typeof text !== 'string') return;
 
-    // Detect if text contains Vietnamese characters, diacritics, or common Vietnamese phrases
-    const hasVietnameseChars = /[àáảãạăắằẳẵặâấầẩẫậèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđĐChúc mừng bạn mèo chiến thắng về đích]/i.test(text);
+    const cleanText = text
+      .replace(/_{2,}/g, ' ')
+      .replace(/[\u{1F600}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F300}-\u{1F5FF}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAFF}]/gu, '')
+      .replace(/[*_#`~[\]]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
 
-    let targetLang = lang;
-    if (!targetLang) {
-      targetLang = hasVietnameseChars ? 'vi-VN' : 'en-US';
-    } else if (hasVietnameseChars && !targetLang.startsWith('vi')) {
-      targetLang = 'vi-VN';
-    }
+    if (!cleanText) return;
 
-    const isVi = targetLang.startsWith('vi');
+    const rate = speed !== null ? speed : this.getRate();
 
-    // For Vietnamese, ALWAYS use Google Studio Audio proxy (/api/tts)
-    // to guarantee 100% natural native pronunciation
-    if (isVi) {
-      this.playStudioAudio(text, 'vi', speed);
-      return;
-    }
-
-    // For English: respect user engine setting or default to studio_google
-    const engine = this.getEngine();
-    if (engine === 'studio_google') {
-      this.playStudioAudio(text, 'en', speed);
-    } else {
-      const cleanText = text
-        .replace(/_{2,}/g, ', ... ,')
-        .replace(/[\u{1F600}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F300}-\u{1F5FF}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAFF}]/gu, '')
-        .replace(/[*_#`~[\]]/g, '')
-        .replace(/\s+/g, ' ')
-        .trim();
-      this.speakWebSpeech(cleanText, targetLang, speed);
-    }
+    // Natural English Speech Synthesis
+    this.speakWebSpeech(cleanText, 'en-US', rate);
   },
 
   /**
-   * Dedicated Vietnamese announcement helper (e.g. Cat Race, Wheel of Names, Hangman)
-   * Plays authentic native Vietnamese "Chị Google" voice
+   * Dedicated Natural English announcement helper
+   */
+  speakEnglish(text, speed = 1.0) {
+    this.speak(text, 'en-US', speed);
+  },
+
+  /**
+   * Legacy alias: routed to natural English voice per user preference
    */
   speakVietnamese(text, speed = 1.0) {
-    this.playStudioAudio(text, 'vi', speed);
+    this.speakEnglish(text, speed);
   },
 
   /**
@@ -266,36 +252,33 @@ export const speech = {
       if (saved) return saved;
     }
 
-    if (lang.startsWith('vi')) {
-      return (
-        voices.find((v) => v.lang.startsWith('vi') && v.name.includes('Google')) ||
-        voices.find((v) => v.lang.startsWith('vi') && (v.name.includes('Linh') || v.name.includes('HoaiMy'))) ||
-        voices.find((v) => v.lang.startsWith('vi')) ||
-        null
-      );
-    }
+    const englishVoices = voices.filter((v) => v.lang.toLowerCase().startsWith('en'));
+    if (englishVoices.length === 0) return voices[0] || null;
 
-    const englishVoices = voices.filter((v) => v.lang.startsWith('en'));
+    // 1. Natural / Enhanced / Neural studio quality voices
+    const naturalVoice = englishVoices.find((v) =>
+      v.name.toLowerCase().includes('natural') ||
+      v.name.toLowerCase().includes('enhanced') ||
+      v.name.toLowerCase().includes('premium') ||
+      v.name.toLowerCase().includes('neural')
+    );
+    if (naturalVoice) return naturalVoice;
 
-    // Google US English (Warm, standard, friendly)
+    // 2. Google US English (Warm, studio quality)
     const googleUS = englishVoices.find((v) => v.name.includes('Google') && v.name.includes('US'));
     if (googleUS) return googleUS;
 
-    // Google UK English
-    const googleUK = englishVoices.find((v) => v.name.includes('Google') && v.name.includes('UK'));
-    if (googleUK) return googleUK;
-
-    // Any Google
-    const anyGoogle = englishVoices.find((v) => v.name.includes('Google'));
-    if (anyGoogle) return anyGoogle;
-
-    // Apple Samantha or Natural
+    // 3. Apple Samantha, Ava, Daniel, Karen, Victoria (macOS native clear voices)
     const appleQuality = englishVoices.find((v) =>
-      ['samantha', 'ava', 'serena', 'oliver', 'victoria', 'daniel'].some((n) =>
+      ['samantha', 'ava', 'karen', 'daniel', 'serena', 'victoria', 'oliver'].some((n) =>
         v.name.toLowerCase().includes(n)
       )
     );
     if (appleQuality) return appleQuality;
+
+    // 4. Any Google English voice
+    const anyGoogle = englishVoices.find((v) => v.name.includes('Google'));
+    if (anyGoogle) return anyGoogle;
 
     return englishVoices[0] || null;
   },
