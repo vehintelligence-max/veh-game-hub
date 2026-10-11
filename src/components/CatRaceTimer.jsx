@@ -341,6 +341,13 @@ export default function CatRaceTimer() {
   const [winner, setWinner] = useState(null);
   const [rankings, setRankings] = useState([]);
 
+  // Crossing Order & Winner Tracking (First cat to cross the finish line ribbon wins!)
+  const [firstCrossedId, setFirstCrossedId] = useState(null);
+  const [crossedIds, setCrossedIds] = useState([]);
+  const crossingOrderRef = useRef([]);
+  const crossedTimesRef = useRef({});
+  const finishTriggeredRef = useRef(false);
+
   // Audio & Display Settings
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [alarmBellEnabled, setAlarmBellEnabled] = useState(true);
@@ -382,6 +389,11 @@ export default function CatRaceTimer() {
     setIsFinished(false);
     setWinner(null);
     setRankings([]);
+    setFirstCrossedId(null);
+    setCrossedIds([]);
+    crossingOrderRef.current = [];
+    crossedTimesRef.current = {};
+    finishTriggeredRef.current = false;
     setTotalSeconds(newTotal);
     setRemainingSeconds(newTotal);
     elapsedOffsetRef.current = 0;
@@ -547,27 +559,47 @@ export default function CatRaceTimer() {
 
       racers.forEach((r) => {
         const pers = racerPersonalitiesRef.current[r.id] || {
-          freq1: 1, freq2: 2, phase1: 0, phase2: 0, amplitude: 5, sprintPower: 5
+          freq1: 1, freq2: 2, phase1: 0, phase2: 0, amplitude: 5, sprintPower: 6
         };
 
         const wave1 = Math.sin(elapsedSec * pers.freq1 + pers.phase1);
         const wave2 = Math.sin(elapsedSec * pers.freq2 + pers.phase2);
         const surge = (wave1 * 0.65 + wave2 * 0.35) * pers.amplitude;
 
-        // Final sprint amplification in the last 15% of the countdown
+        // Final sprint amplification as countdown nears 0
         let sprint = 0;
-        if (progress > 0.85) {
-          const sprintRatio = (progress - 0.85) / 0.15;
-          sprint = pers.sprintPower * sprintRatio;
+        if (progress > 0.78) {
+          const sprintRatio = (progress - 0.78) / 0.22;
+          sprint = pers.sprintPower * (sprintRatio * sprintRatio * 1.8);
         }
 
         let p = progress * 100 + surge + sprint;
-        if (progress >= 0.99) {
-          p = Math.max(98, p);
-        }
-        p = Math.max(0, Math.min(104, p));
 
+        // If racer already crossed 100%, let it cruise forward past the ribbon into the victory zone
+        if (crossingOrderRef.current.includes(r.id)) {
+          p = Math.max(102, p);
+        }
+
+        // Bounded between 0% (start) and 122% (victory run-off zone)
+        p = Math.max(0, Math.min(122, p));
         nextPos[r.id] = p;
+
+        // PHYSICAL CROSSING CHECK: Did this cat just cross the finish line (p >= 100)?
+        if (p >= 100 && !crossingOrderRef.current.includes(r.id)) {
+          crossingOrderRef.current.push(r.id);
+          crossedTimesRef.current[r.id] = now;
+          if (crossingOrderRef.current.length === 1) {
+            // First cat across the finish line!
+            setFirstCrossedId(r.id);
+            sound.playQuickMew('excited');
+            confetti({
+              particleCount: 50,
+              spread: 60,
+              origin: { x: 0.8, y: 0.5 },
+            });
+          }
+          setCrossedIds([...crossingOrderRef.current]);
+        }
 
         if (p > maxP) {
           maxP = p;
@@ -578,10 +610,15 @@ export default function CatRaceTimer() {
       setPositions(nextPos);
       setLeaderId(leadId);
 
-      // Finish check when countdown reaches 0 / progress reaches 100%
-      if (progress >= 1.0) {
-        handleFinishRace(nextPos);
-        return;
+      // Finish check:
+      // 1. Countdown timer hits 0 (progress >= 1.0)
+      // 2. OR leader has sprinted cleanly across the finish ribbon into the victory zone (maxP >= 115) and countdown is nearly finished (progress >= 0.94)
+      if (!finishTriggeredRef.current) {
+        if (progress >= 1.0 || (crossingOrderRef.current.length > 0 && maxP >= 115 && progress >= 0.94)) {
+          finishTriggeredRef.current = true;
+          handleFinishRace(nextPos);
+          return;
+        }
       }
 
       animFrameRef.current = requestAnimationFrame(tick);
@@ -603,21 +640,50 @@ export default function CatRaceTimer() {
     setIsFinished(true);
     setRemainingSeconds(0);
 
-    // Sort final rankings from finish line positions
-    const sorted = [...racers].sort((a, b) => {
-      const posA = finalSnapshotPositions[a.id] || 0;
-      const posB = finalSnapshotPositions[b.id] || 0;
-      return posB - posA;
-    });
+    // DETERMINATION OF WINNER:
+    // "mèo phải chạy qua hết vạch nhanh nhất thì mới được tính là mèo thắng"
+    // 1. Racers who crossed the finish line ribbon in the exact order they crossed (crossingOrderRef.current)
+    // 2. Racers who haven't crossed yet, sorted by their remaining distance (finalSnapshotPositions)
+    const crossedList = crossingOrderRef.current
+      .map((id) => racers.find((r) => r.id === id))
+      .filter(Boolean);
 
-    const winningCat = sorted[0] || racers[0];
+    const uncrossedList = racers
+      .filter((r) => !crossingOrderRef.current.includes(r.id))
+      .sort((a, b) => (finalSnapshotPositions[b.id] || 0) - (finalSnapshotPositions[a.id] || 0));
+
+    const finalRankings = [...crossedList, ...uncrossedList];
+    const winningCat = finalRankings[0] || racers[0];
+
+    // Ensure winner is in crossedList
+    if (!crossingOrderRef.current.includes(winningCat.id)) {
+      crossingOrderRef.current.push(winningCat.id);
+      setFirstCrossedId(winningCat.id);
+      setCrossedIds([...crossingOrderRef.current]);
+    }
+
     setWinner(winningCat);
-    setRankings(sorted);
+    setRankings(finalRankings);
+    setFirstCrossedId(winningCat.id);
 
-    // Push all positions across finish line
+    // Arrange final positions:
+    // Racers that crossed line are placed in victory zone (> 100%):
+    // 1st: 118% (far past the ribbon at 80% track width)
+    // 2nd (if crossed): 112%
+    // 3rd (if crossed): 107%
+    // 4th (if crossed): 103%
+    // Racers that didn't cross line remain before line (< 100%): 96%, 92%, 88%...
     const finalPos = {};
-    sorted.forEach((r, idx) => {
-      finalPos[r.id] = 100 - idx * 3.5;
+    const crossedNow = crossingOrderRef.current
+      .map((id) => racers.find((r) => r.id === id))
+      .filter(Boolean);
+    const uncrossedNow = racers.filter((r) => !crossingOrderRef.current.includes(r.id));
+
+    crossedNow.forEach((r, idx) => {
+      finalPos[r.id] = Math.max(103, 118 - idx * 4.5);
+    });
+    uncrossedNow.forEach((r, idx) => {
+      finalPos[r.id] = Math.min(97, 96 - idx * 4);
     });
     setPositions(finalPos);
 
@@ -628,15 +694,15 @@ export default function CatRaceTimer() {
     sound.playFanfare();
 
     confetti({
-      particleCount: 150,
-      spread: 90,
+      particleCount: 180,
+      spread: 100,
       origin: { y: 0.55 },
     });
 
     if (voiceAnnounceEnabled) {
       setTimeout(() => {
         speech.speakVietnamese(
-          `Chúc mừng Mèo số ${winningCat.number}, ${winningCat.name} đã về đích đầu tiên và giành chiến thắng!`
+          `Chúc mừng Mèo số ${winningCat.number}, ${winningCat.name} đã chạy qua vạch đích nhanh nhất và giành chiến thắng!`
         );
       }, 700);
     }
@@ -921,27 +987,68 @@ export default function CatRaceTimer() {
           </div>
         </div>
 
-        {/* FINISH LINE (Right Side): Checkered Tape & Flag */}
-        <div className="absolute right-6 sm:right-10 top-0 bottom-0 w-6 sm:w-8 z-20 pointer-events-none flex flex-col border-x-2 border-white/80 shadow-2xl overflow-hidden">
-          {Array.from({ length: 48 }).map((_, i) => (
-            <div
-              key={i}
-              className={`h-4 w-full flex ${i % 2 === 0 ? 'bg-black' : 'bg-white'}`}
-            >
-              <div className={`w-1/2 h-full ${i % 2 === 0 ? 'bg-white' : 'bg-black'}`} />
+        {/* FINISH LINE RIBBON (Checkered Ribbon placed at exact left: 80%) */}
+        <div
+          className="absolute top-0 bottom-0 z-20 pointer-events-none flex flex-col items-center"
+          style={{ left: '80%', transform: 'translateX(-50%)' }}
+        >
+          {/* Overhead Banner */}
+          <div className="absolute top-1 z-30 bg-red-600 text-white font-black text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full shadow-lg border-2 border-white flex items-center gap-1 whitespace-nowrap animate-pulse">
+            🏁 VẠCH ĐÍCH • FINISH
+          </div>
+
+          {/* Checkered Ribbon Poles */}
+          <div className="w-5 sm:w-6 h-full flex flex-col border-x-2 border-white/90 shadow-2xl overflow-hidden bg-black/20">
+            {Array.from({ length: 48 }).map((_, i) => (
+              <div
+                key={i}
+                className={`h-4 w-full flex ${i % 2 === 0 ? 'bg-black' : 'bg-white'}`}
+              >
+                <div className={`w-1/2 h-full ${i % 2 === 0 ? 'bg-white' : 'bg-black'}`} />
+              </div>
+            ))}
+          </div>
+
+          {/* Ribbon Cut Banner if first cat crossed */}
+          {firstCrossedId && (
+            <div className="absolute top-1/2 -translate-y-1/2 bg-yellow-400 text-black font-black text-[10px] px-2.5 py-1 rounded-full shadow-lg border-2 border-black whitespace-nowrap animate-bounce z-30">
+              💥 ĐÃ CẮT BĂNG VỀ ĐÍCH!
             </div>
-          ))}
-          <div className="absolute top-2 -right-3 bg-red-600 text-white font-black text-[10px] px-1.5 py-0.5 rounded shadow">
-            🏁 FINISH
+          )}
+
+          {/* Bottom Coordinate Indicator */}
+          <div className="absolute bottom-1 z-30 bg-black/85 text-yellow-300 font-black text-[9px] px-2 py-0.5 rounded shadow border border-white/20 whitespace-nowrap">
+            VẠCH ĐÍCH (100%)
+          </div>
+        </div>
+
+        {/* POST-FINISH VICTORY RUN-OFF ZONE (From left: 80% to 100%) */}
+        <div
+          className="absolute top-0 bottom-0 right-0 z-0 pointer-events-none overflow-hidden"
+          style={{ left: '80%' }}
+        >
+          <div className="w-full h-full bg-gradient-to-r from-amber-600/35 via-yellow-500/25 to-amber-700/35 flex flex-col justify-center items-center border-l-2 border-yellow-400/50">
+            <span className="text-white/25 font-black text-xl sm:text-2xl tracking-widest uppercase select-none text-center">
+              🏆 VÙNG VỀ ĐÍCH
+            </span>
+            <span className="text-yellow-200/40 font-bold text-[10px] tracking-wider uppercase select-none text-center">
+              Sau vạch đích • Quán quân
+            </span>
           </div>
         </div>
 
         {/* ALL RACING LANES (Unlimited: Each lane has its bold painted number + running cat actor) */}
         {racers.map((racer) => {
           const posPercent = positions[racer.id] || 0;
-          const leftStyle = 8 + (posPercent / 100) * 76;
-          const isLead = leaderId === racer.id;
+          // pos 0% -> left 7% (starting blocks)
+          // pos 100% -> left 80% (checkered finish line ribbon)
+          // pos 120% -> left 7 + (1.20 * 73) = 94.6% (sprinting past finish line in victory zone)
+          const leftStyle = 7 + (posPercent / 100) * 73;
           const isWin = winner?.id === racer.id;
+          const isLead = leaderId === racer.id;
+          const isFirstAcross = firstCrossedId === racer.id || (isWin && isFinished);
+          const hasCrossed = posPercent >= 100 || crossedIds.includes(racer.id);
+          const crossIndex = crossedIds.indexOf(racer.id);
 
           return (
             <div
@@ -974,15 +1081,32 @@ export default function CatRaceTimer() {
                   transform: 'translateX(-50%)'
                 }}
               >
+                {/* Winner / Crossed Ribbon Status Badge above Cat */}
+                {isFirstAcross ? (
+                  <div className="animate-bounce bg-gradient-to-r from-yellow-400 to-amber-500 text-stone-900 font-black text-[10px] sm:text-[11px] px-2.5 py-0.5 rounded-full shadow-lg border-2 border-white flex items-center gap-1 whitespace-nowrap mb-0.5 z-30">
+                    <span>👑</span>
+                    <span>QUÁN QUÂN • VỀ ĐÍCH #1</span>
+                  </div>
+                ) : hasCrossed ? (
+                  <div className="bg-emerald-600 text-white font-black text-[9px] sm:text-[10px] px-2 py-0.5 rounded-full shadow border border-white/60 flex items-center gap-1 whitespace-nowrap mb-0.5 z-30">
+                    <span>✓</span>
+                    <span>ĐÃ QUA VẠCH (#{crossIndex >= 0 ? crossIndex + 1 : 2})</span>
+                  </div>
+                ) : isLead && isRunning ? (
+                  <div className="animate-pulse bg-amber-500 text-white font-black text-[9px] px-2 py-0.5 rounded-full shadow border border-white/40 flex items-center gap-1 whitespace-nowrap mb-0.5 z-30">
+                    <span>⭐ DẪN ĐẦU</span>
+                  </div>
+                ) : null}
+
                 <RunningCat
                   racer={racer}
                   isRunning={isRunning}
-                  isWinner={isWin}
+                  isWinner={isWin || isFirstAcross}
                   isLeader={isLead}
                 />
 
                 {/* Name / Jersey Tag below Cat */}
-                <span className="text-[10px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] bg-black/50 px-2 py-0.5 rounded-full whitespace-nowrap -mt-1 border border-white/10">
+                <span className="text-[10px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] bg-black/60 px-2.5 py-0.5 rounded-full whitespace-nowrap -mt-1 border border-white/10 shadow">
                   {racer.name}
                 </span>
               </div>
@@ -1220,7 +1344,7 @@ export default function CatRaceTimer() {
             </h3>
 
             <p className="text-xs text-stone-600 mt-1 font-medium">
-              Đã chạy băng qua vạch đích đầu tiên khi đồng hồ điểm 00:00:00!
+              Đã bứt tốc và chạy băng qua vạch đích nhanh nhất!
             </p>
 
             {/* Podium Top 3 Rankings */}
@@ -1253,7 +1377,7 @@ export default function CatRaceTimer() {
               <button
                 type="button"
                 onClick={() =>
-                  speech.speakVietnamese(`Chúc mừng Mèo số ${winner.number}, ${winner.name} đã về đích đầu tiên!`)
+                  speech.speakVietnamese(`Chúc mừng Mèo số ${winner.number}, ${winner.name} đã chạy qua vạch đích nhanh nhất và giành chiến thắng!`)
                 }
                 className="flex-1 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl border border-stone-200 transition flex items-center justify-center gap-1.5"
               >
