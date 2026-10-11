@@ -56,10 +56,8 @@ export default function AIGeneratorModal({ isOpen, onClose, onQuizGenerated, onO
       savedKey = savedKey.replace('Qr0Hu', 'QrOHu');
       localStorage.setItem('vhouse_gemini_api_key', savedKey);
     }
-    // Auto-load teacher's authentic Google AI Studio key from screenshot if not explicitly cleared
     if (!savedKey && localStorage.getItem('vhouse_key_removed') !== 'true') {
       savedKey = '';
-      localStorage.setItem('vhouse_gemini_api_key', savedKey);
     }
     setGeminiKey(savedKey);
     setKeyInput(savedKey);
