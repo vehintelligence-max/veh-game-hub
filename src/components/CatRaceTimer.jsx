@@ -544,8 +544,9 @@ export default function CatRaceTimer() {
   // Audio & Display Settings
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [alarmBellEnabled, setAlarmBellEnabled] = useState(true);
-  const [voiceAnnounceEnabled, setVoiceAnnounceEnabled] = useState(true);
-  const [liveCasterVoiceEnabled, setLiveCasterVoiceEnabled] = useState(true);
+  const [voiceAnnounceEnabled, setVoiceAnnounceEnabled] = useState(false);
+  const [liveCasterVoiceEnabled, setLiveCasterVoiceEnabled] = useState(false);
+  const [showCatStatusHud, setShowCatStatusHud] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
@@ -568,13 +569,10 @@ export default function CatRaceTimer() {
   const finalSprintAnnouncedRef = useRef(false);
   const raceStartAnnouncedRef = useRef(false);
 
-  // Live Sports Caster TTS Voice Helper (High-energy, throttled to prevent overlapping)
+  // Live Sports Caster TTS Voice Helper (Disabled per user request: "khỏi nói speak thành giọng đi")
   const speakCaster = (text, minInterval = 3400) => {
-    if (!liveCasterVoiceEnabled || !soundEnabled) return;
-    const now = Date.now();
-    if (now - lastSpokenCommentaryTimeRef.current < minInterval) return;
-    lastSpokenCommentaryTimeRef.current = now;
-    speech.speakVietnamese(text, 1.05);
+    // Disabled during live racing per user request
+    return;
   };
 
   // Format seconds to digital stopwatch display: HH:MM:SS
@@ -676,21 +674,13 @@ export default function CatRaceTimer() {
 
       if (!raceStartAnnouncedRef.current) {
         raceStartAnnouncedRef.current = true;
-        const startComment = {
-          text: '🏁 Xuất phát rồi! Dàn tuyển thủ mèo lao đi như bão táp! Xem ai sẽ giở trò trước đây!',
-          audio: 'Xuất phát rồi! Dàn tuyển thủ mèo lao đi như bão táp!'
-        };
         setCommentary({
-          text: startComment.text,
+          text: '🏁 Xuất phát rồi! Dàn tuyển thủ mèo lao đi như bão táp! Xem ai sẽ giở trò đểu trước đây!',
           type: 'start',
           icon: '🏁',
+          headline: '🏁 XUẤT PHÁT! DÀN TUYỂN THỦ MÈO LAO ĐI NHƯ BÃO TÁP!',
           time: Date.now()
         });
-        if (liveCasterVoiceEnabled && soundEnabled) {
-          setTimeout(() => {
-            speakCaster(startComment.audio, 2000);
-          }, 350);
-        }
       }
     }
   };
@@ -991,19 +981,19 @@ export default function CatRaceTimer() {
               const overtakes = [
                 {
                   text: `🔥 Ôi bạn ${newLead.name} đã vượt lên dẫn đầu! Nhưng không, bạn ${oldLead.name} không cho phép, đang bám đuổi quyết liệt!`,
-                  audio: `Ôi bạn ${newLead.name} đã vượt lên dẫn đầu, nhưng không bạn ${oldLead.name} không cho phép, bạn ${newLead.name} đã nhanh hơn!`
+                  headline: `⚡ BỨT TỐC SOÁN NGÔI: MÈO #${newLead.number} (${newLead.name}) VƯỢT QUA MÈO #${oldLead.number} (${oldLead.name})!`
                 },
                 {
                   text: `⚡ Bất ngờ chưa! Bạn ${newLead.name} không cho phép! Bạn ${newLead.name} đã nhanh hơn bạn ${oldLead.name} một bước!`,
-                  audio: `Bất ngờ chưa, bạn ${newLead.name} không cho phép! Bạn ${newLead.name} đã nhanh hơn bạn ${oldLead.name}!`
+                  headline: `⚡ ĐỔI NGÔI ĐẦU BẢNG: MÈO #${newLead.number} (${newLead.name}) NHANH HƠN MÈO #${oldLead.number} (${oldLead.name})!`
                 },
                 {
                   text: `🚀 Cú bứt tốc ngoạn mục! Bạn ${newLead.name} chính thức soán ngôi dẫn đầu của bạn ${oldLead.name}!`,
-                  audio: `Cú bứt tốc ngoạn mục, bạn ${newLead.name} chính thức soán ngôi của bạn ${oldLead.name}!`
+                  headline: `🚀 SOÁN NGÔI NGOẠN MỤC: MÈO #${newLead.number} (${newLead.name}) VƯƠN LÊN DẪN ĐẦU!`
                 },
                 {
                   text: `👀 Trận chiến nghẹt thở! Bạn ${newLead.name} vừa vượt mặt bạn ${oldLead.name} trong gang tấc!`,
-                  audio: `Trận chiến nghẹt thở, bạn ${newLead.name} vừa vượt mặt bạn ${oldLead.name} trong gang tấc!`
+                  headline: `👀 NGHẸT THỞ: MÈO #${newLead.number} (${newLead.name}) VƯỢT MẶT MÈO #${oldLead.number} (${oldLead.name})!`
                 }
               ];
               const chosen = overtakes[Math.floor(Math.random() * overtakes.length)];
@@ -1011,11 +1001,11 @@ export default function CatRaceTimer() {
                 text: chosen.text,
                 type: 'overtake',
                 icon: '⚡',
+                headline: chosen.headline,
+                actorA: newLead,
+                actorB: oldLead,
                 time: now
               });
-              if (liveCasterVoiceEnabled && soundEnabled) {
-                speakCaster(chosen.audio, 3600);
-              }
             }
           }
         }
@@ -1032,11 +1022,10 @@ export default function CatRaceTimer() {
           text: sprintText,
           type: 'sprint',
           icon: '🏁',
+          headline: `🔥 NƯỚC RÚT VỀ ĐÍCH: MÈO #${currentLead.number} (${currentLead.name}) ĐANG LAO VỀ VẠCH ĐÍCH!`,
+          actorA: currentLead,
           time: now
         });
-        if (liveCasterVoiceEnabled && soundEnabled) {
-          speakCaster(`Vạch đích ngay trước mắt! Bạn ${currentLead.name} đang lao về đích!`, 3400);
-        }
       }
 
       // ======================================================================
@@ -1138,19 +1127,19 @@ export default function CatRaceTimer() {
               const kickLines = [
                 {
                   text: `💥 Trời đất ơi! Bạn ${kicker.name} vừa tung cước đá bay bạn ${victim.name}! Quá tàn nhẫn!`,
-                  audio: `Trời đất ơi bạn ${kicker.name} đá bạn ${victim.name}!`
+                  headline: `💥 CÚ ĐÁ TÌNH BẠN: MÈO #${kicker.number} (${kicker.name}) ĐÁ BAY MÈO #${victim.number} (${victim.name})! 🦶`
                 },
                 {
                   text: `😾 Một pha chơi xấu kinh điển! Bạn ${kicker.name} đạp văng bạn ${victim.name} sang làn bên cạnh!`,
-                  audio: `Một pha chơi xấu, bạn ${kicker.name} đạp văng bạn ${victim.name}!`
+                  headline: `😾 CHƠI XẤU KINH ĐIỂN: MÈO #${kicker.number} (${kicker.name}) ĐẠP VĂNG MÈO #${victim.number} (${victim.name})!`
                 },
                 {
                   text: `😱 Trời ơi là trời! Bạn ${kicker.name} đá bạn ${victim.name}! Trọng tài ở đâu rồi?!`,
-                  audio: `Trời ơi là trời bạn ${kicker.name} đá bạn ${victim.name}!`
+                  headline: `😱 TRỜI ƠI LÀ TRỜI: MÈO #${kicker.number} (${kicker.name}) ĐÁ BAY MÈO #${victim.number} (${victim.name})!`
                 },
                 {
                   text: `🥋 Pha song phi tình bạn! Bạn ${kicker.name} tiễn bạn ${victim.name} hít khói một đoạn dài!`,
-                  audio: `Pha song phi tình bạn, bạn ${kicker.name} đá bạn ${victim.name}!`
+                  headline: `🥋 SONG PHI TÌNH BẠN: MÈO #${kicker.number} (${kicker.name}) SÚT VĂNG MÈO #${victim.number} (${victim.name})!`
                 }
               ];
               const chosenKick = kickLines[Math.floor(Math.random() * kickLines.length)];
@@ -1158,11 +1147,11 @@ export default function CatRaceTimer() {
                 text: chosenKick.text,
                 type: 'kick',
                 icon: '💥',
+                headline: chosenKick.headline,
+                actorA: kicker,
+                actorB: victim,
                 time: now
               });
-              if (liveCasterVoiceEnabled && soundEnabled) {
-                speakCaster(chosenKick.audio, 3200);
-              }
             }
           } else if (roll < 0.70) {
             // EVENT B: TÉ LĂN QUAY TRƯỢT VỎ CHUỐI (BANANA SLIP TUMBLE)
@@ -1184,19 +1173,19 @@ export default function CatRaceTimer() {
               const slipLines = [
                 {
                   text: `🍌 Bạn ${victim.name} đã bị đạp trúng vỏ chuối té lăn quay 720 độ!`,
-                  audio: `Bạn ${victim.name} đã bị té lăn quay các kiểu!`
+                  headline: `🍌 TAI NẠN VỎ CHUỐI: MÈO #${victim.number} (${victim.name}) TÉ LĂN QUAY 720 ĐỘ! 😵`
                 },
                 {
                   text: `😵 Pha tiếp đất bằng mông đỉnh cao! Bạn ${victim.name} té dập mặt rồi!`,
-                  audio: `Pha tiếp đất bằng mông, bạn ${victim.name} té dập mặt rồi!`
+                  headline: `😵 TIẾP ĐẤT BẰNG MÔNG: MÈO #${victim.number} (${victim.name}) TÉ DẬP MẶT RỒI!`
                 },
                 {
                   text: `🍌 Bất ngờ chưa! Bạn ${victim.name} đang chạy bon bon thì trượt chân xoay như chong chóng!`,
-                  audio: `Bất ngờ chưa, bạn ${victim.name} té lăn đùng ra đường đua!`
+                  headline: `🍌 TRƯỢT VỎ CHUỐI: MÈO #${victim.number} (${victim.name}) XOAY NHƯ CHONG CHÓNG!`
                 },
                 {
                   text: `🌀 Ôi bạn ${victim.name} ơi là bạn ${victim.name}! Đang ngon trớn tự nhiên té lăn đùng ra đó!`,
-                  audio: `Bạn ${victim.name} đã bị té lăn quay!`
+                  headline: `🌀 TÉ ĐÙNG RA ĐƯỜNG: MÈO #${victim.number} (${victim.name}) TỰ NHIÊN LĂN QUAY!`
                 }
               ];
               const chosenSlip = slipLines[Math.floor(Math.random() * slipLines.length)];
@@ -1204,11 +1193,10 @@ export default function CatRaceTimer() {
                 text: chosenSlip.text,
                 type: 'slip',
                 icon: '🍌',
+                headline: chosenSlip.headline,
+                actorA: victim,
                 time: now
               });
-              if (liveCasterVoiceEnabled && soundEnabled) {
-                speakCaster(chosenSlip.audio, 3200);
-              }
             }
           } else if (roll < 0.88) {
             // EVENT C: LON PATE CÁ HỒI SIÊU TỐC (TUNA CAN TURBO BOOST)
@@ -1230,11 +1218,11 @@ export default function CatRaceTimer() {
             const turboLines = [
               {
                 text: `🐟 Ôi mẹ ơi! Bạn ${trailingRacer.name} vừa húp trọn lon Pate cá hồi, hóa tên lửa bứt phá!`,
-                audio: `Không thể tin được, bạn ${trailingRacer.name} bật tên lửa bứt tốc kinh hoàng!`
+                headline: `🚀 BẬT PHẢN LỰC PATE: MÈO #${trailingRacer.number} (${trailingRacer.name}) PHUN LỬA TÊN LỬA! 🔥`
               },
               {
                 text: `🚀 Kinh hoàng! Bạn ${trailingRacer.name} bật phản lực pate siêu tốc, lao đi như một cơn gió!`,
-                audio: `Bạn ${trailingRacer.name} húp lon pate cá hồi bật phản lực bứt phá!`
+                headline: `🚀 PATE SIÊU TỐC: MÈO #${trailingRacer.number} (${trailingRacer.name}) LAO ĐI NHƯ MỘT CƠN GIÓ!`
               }
             ];
             const chosenTurbo = turboLines[Math.floor(Math.random() * turboLines.length)];
@@ -1242,11 +1230,10 @@ export default function CatRaceTimer() {
               text: chosenTurbo.text,
               type: 'turbo',
               icon: '🚀',
+              headline: chosenTurbo.headline,
+              actorA: trailingRacer,
               time: now
             });
-            if (liveCasterVoiceEnabled && soundEnabled) {
-              speakCaster(chosenTurbo.audio, 3200);
-            }
           } else {
             // EVENT D: BƯỚM ĐẬU MŨI ĐỨNG HÌNH (BUTTERFLY DISTRACTION)
             const rTarget = racers[Math.floor(Math.random() * racers.length)];
@@ -1262,11 +1249,11 @@ export default function CatRaceTimer() {
             const bfLines = [
               {
                 text: `🦋 Trời đất ơi! Con bướm ở đâu bay tới đậu ngay sống mũi bạn ${rTarget.name}, đứng hình luôn!`,
-                audio: `Trời đất ơi con bướm đậu mũi bạn ${rTarget.name}, đứng hình luôn!`
+                headline: `🦋 BƯỚM ĐẬU SỐNG MŨI: MÈO #${rTarget.number} (${rTarget.name}) ĐỨNG HÌNH BẮT BƯỚM! ✨`
               },
               {
                 text: `🌸 Đang đua căng thẳng mà bạn ${rTarget.name} lại dừng lại ngắm bướm bắt hoa, cạn lời thực sự!`,
-                audio: `Đang đua mà bạn ${rTarget.name} lại đứng ngắm bướm, cạn lời luôn!`
+                headline: `🌸 NGẮM BƯỚM BẮT HOA: MÈO #${rTarget.number} (${rTarget.name}) ĐỨNG YÊN NGẨN NGƠ!`
               }
             ];
             const chosenBf = bfLines[Math.floor(Math.random() * bfLines.length)];
@@ -1274,11 +1261,10 @@ export default function CatRaceTimer() {
               text: chosenBf.text,
               type: 'distracted',
               icon: '🦋',
+              headline: chosenBf.headline,
+              actorA: rTarget,
               time: now
             });
-            if (liveCasterVoiceEnabled && soundEnabled) {
-              speakCaster(chosenBf.audio, 3200);
-            }
           }
         }
       }
@@ -1344,9 +1330,11 @@ export default function CatRaceTimer() {
     setFirstCrossedId(winningCat.id);
 
     setCommentary({
-      text: `🏆 VÔ ĐỊCH: Mèo số ${winningCat.number} (${winningCat.name}) đã xuất sắc cán đích đầu tiên và giành chiến thắng!`,
+      text: `🏆 VÔ ĐỊCH: Mèo số ${winningCat.number} (${winningCat.name}) đã xuất sắc cán đích đầu tiên và giành chiến thắng chung cuộc!`,
       type: 'winner',
       icon: '🏆',
+      headline: `🏆 QUÁN QUÂN: MÈO SỐ #${winningCat.number} (${winningCat.name}) GIÀNH CHIẾN THẮNG CHUNG CUỘC! 👑`,
+      actorA: winningCat,
       time: Date.now()
     });
 
@@ -1435,6 +1423,157 @@ export default function CatRaceTimer() {
       : racers.length <= 10
       ? 'h-20 sm:h-22'
       : 'h-16 sm:h-18';
+
+  // Category badge styling for TV live broadcast console
+  const getCategoryBadgeStyle = (type) => {
+    switch (type) {
+      case 'kick':
+        return 'bg-rose-600/30 text-rose-300 border-rose-500/60';
+      case 'slip':
+        return 'bg-yellow-500/30 text-yellow-300 border-yellow-500/60';
+      case 'turbo':
+        return 'bg-cyan-500/30 text-cyan-300 border-cyan-500/60';
+      case 'distracted':
+        return 'bg-purple-500/30 text-purple-300 border-purple-500/60';
+      case 'overtake':
+        return 'bg-amber-500/30 text-amber-300 border-amber-500/60';
+      case 'sprint':
+        return 'bg-red-600/30 text-red-300 border-red-500/60';
+      case 'winner':
+        return 'bg-yellow-400/40 text-yellow-200 border-yellow-400';
+      default:
+        return 'bg-white/10 text-stone-300 border-white/20';
+    }
+  };
+
+  // Headline card background & glow styling for TV projection
+  const getHeadlineCardStyle = (type) => {
+    switch (type) {
+      case 'kick':
+        return 'bg-gradient-to-r from-red-950 via-rose-900/80 to-red-950 border-red-500 shadow-[0_0_35px_rgba(239,68,68,0.35)]';
+      case 'slip':
+        return 'bg-gradient-to-r from-amber-950 via-yellow-900/80 to-amber-950 border-yellow-400 shadow-[0_0_35px_rgba(234,179,8,0.35)]';
+      case 'turbo':
+        return 'bg-gradient-to-r from-cyan-950 via-blue-900/80 to-cyan-950 border-cyan-400 shadow-[0_0_35px_rgba(6,182,212,0.35)]';
+      case 'distracted':
+        return 'bg-gradient-to-r from-purple-950 via-fuchsia-900/80 to-purple-950 border-purple-400 shadow-[0_0_35px_rgba(168,85,247,0.35)]';
+      case 'overtake':
+        return 'bg-gradient-to-r from-amber-950 via-orange-900/80 to-amber-950 border-amber-400 shadow-[0_0_35px_rgba(245,158,11,0.35)]';
+      case 'sprint':
+        return 'bg-gradient-to-r from-red-950 via-rose-900/80 to-stone-950 border-red-400 shadow-[0_0_35px_rgba(239,68,68,0.35)]';
+      case 'winner':
+        return 'bg-gradient-to-r from-yellow-950 via-amber-900/90 to-yellow-950 border-yellow-400 shadow-[0_0_45px_rgba(250,204,21,0.5)]';
+      default:
+        return 'bg-gradient-to-r from-[#1A222C] via-[#12171E] to-[#1A222C] border-yellow-400/50 shadow-xl';
+    }
+  };
+
+  // Real-time Cat Status Evaluator for Big TV Screen & Classroom Projection
+  const getRacerLiveStatus = (racer) => {
+    const effect = catEffects[racer.id];
+    const isWin = winner?.id === racer.id && isFinished;
+    const isFirstAcross = firstCrossedId === racer.id || isWin;
+    const hasCrossed = crossedIds.includes(racer.id) || (positions[racer.id] || 0) >= 100;
+    const isLead = leaderId === racer.id && isRunning;
+    const posPercent = Math.round(positions[racer.id] || 0);
+    const rankIndex = liveLeaders.findIndex((l) => l.id === racer.id);
+
+    if (isWin) {
+      return {
+        badge: '🏆 QUÁN QUÂN',
+        icon: '👑',
+        className: 'bg-gradient-to-r from-yellow-400 to-amber-500 text-stone-950 font-black border-yellow-200 animate-bounce shadow-md',
+        cardBorder: 'border-yellow-400 bg-yellow-950/60 shadow-[0_0_15px_rgba(250,204,21,0.4)]'
+      };
+    }
+    if (isFirstAcross) {
+      return {
+        badge: '👑 VỀ ĐÍCH #1',
+        icon: '👑',
+        className: 'bg-yellow-400 text-stone-950 font-black border-yellow-200 animate-bounce shadow-md',
+        cardBorder: 'border-yellow-400 bg-yellow-950/60'
+      };
+    }
+    if (hasCrossed) {
+      const crossIdx = crossedIds.indexOf(racer.id);
+      return {
+        badge: `✓ QUA VẠCH #${crossIdx >= 0 ? crossIdx + 1 : 2}`,
+        icon: '🏁',
+        className: 'bg-emerald-600 text-white font-black border-emerald-300 shadow-sm',
+        cardBorder: 'border-emerald-500/60 bg-emerald-950/40'
+      };
+    }
+    if (effect?.type === 'kicking') {
+      return {
+        badge: `🦶 VỪA TUNG CƯỚC!`,
+        icon: '🦶',
+        className: 'bg-rose-600 text-white font-black animate-bounce border-yellow-300 ring-2 ring-rose-400 shadow-lg',
+        cardBorder: 'border-rose-500 bg-rose-950/70 scale-[1.02] shadow-[0_0_15px_rgba(244,63,94,0.4)]'
+      };
+    }
+    if (effect?.type === 'stumbled') {
+      return {
+        badge: `😵 BỊ ĐÁ VĂNG (-5m)!`,
+        icon: '💥',
+        className: 'bg-orange-600 text-white font-black animate-pulse border-white ring-2 ring-orange-500 shadow-lg',
+        cardBorder: 'border-orange-500 bg-orange-950/70 scale-[1.02] shadow-[0_0_15px_rgba(249,115,22,0.4)]'
+      };
+    }
+    if (effect?.type === 'tumbled') {
+      return {
+        badge: `🍌 TÉ LĂN QUAY!`,
+        icon: '🍌',
+        className: 'bg-yellow-400 text-stone-950 font-black animate-bounce border-black ring-2 ring-yellow-400 shadow-lg',
+        cardBorder: 'border-yellow-400 bg-yellow-950/70 scale-[1.02] shadow-[0_0_15px_rgba(234,179,8,0.4)]'
+      };
+    }
+    if (effect?.type === 'turbo') {
+      return {
+        badge: `🚀 BẬT PHẢN LỰC!`,
+        icon: '🚀',
+        className: 'bg-cyan-500 text-stone-950 font-black animate-pulse border-white ring-2 ring-cyan-400 shadow-lg',
+        cardBorder: 'border-cyan-400 bg-cyan-950/70 scale-[1.02] shadow-[0_0_15px_rgba(6,182,212,0.4)]'
+      };
+    }
+    if (effect?.type === 'distracted') {
+      return {
+        badge: `🦋 ĐANG BẮT BƯỚM!`,
+        icon: '🦋',
+        className: 'bg-purple-600 text-white font-black animate-bounce border-pink-300 ring-2 ring-purple-400 shadow-lg',
+        cardBorder: 'border-purple-400 bg-purple-950/70 scale-[1.02] shadow-[0_0_15px_rgba(168,85,247,0.4)]'
+      };
+    }
+    if (isLead) {
+      return {
+        badge: `⭐ DẪN ĐẦU (${posPercent}%)`,
+        icon: '⭐',
+        className: 'bg-gradient-to-r from-amber-400 to-yellow-500 text-stone-950 font-black border-yellow-200 animate-pulse shadow-md',
+        cardBorder: 'border-yellow-400/80 bg-amber-950/50 shadow-[0_0_12px_rgba(245,158,11,0.3)]'
+      };
+    }
+    if (rankIndex === 1 && isRunning) {
+      return {
+        badge: `🥈 TOP 2 (${posPercent}%)`,
+        icon: '🥈',
+        className: 'bg-stone-300 text-stone-950 font-black border-stone-200 shadow-sm',
+        cardBorder: 'border-stone-400/50 bg-stone-900/60'
+      };
+    }
+    if (rankIndex === 2 && isRunning) {
+      return {
+        badge: `🥉 TOP 3 (${posPercent}%)`,
+        icon: '🥉',
+        className: 'bg-amber-700 text-amber-100 font-bold border-amber-600 shadow-sm',
+        cardBorder: 'border-amber-700/50 bg-stone-900/60'
+      };
+    }
+    return {
+      badge: isRunning ? `💨 Đang chạy (${posPercent}%)` : `Sẵn sàng`,
+      icon: isRunning ? '💨' : '🐾',
+      className: 'bg-white/10 text-stone-300 font-semibold border-white/10',
+      cardBorder: 'border-white/10 bg-black/40'
+    };
+  };
 
   return (
     <div
@@ -1604,31 +1743,60 @@ export default function CatRaceTimer() {
       </div>
 
       {/* ==================================================================== */}
-      {/* TV SPORTS BROADCAST & LIVE COMMENTARY CONSOLE (KHUNG BÌNH LUẬN)      */}
+      {/* TV SPORTS BROADCAST & LIVE COMMENTARY JUMBOTRON (Ô BÌNH LUẬN SIÊU TO)  */}
       {/* ==================================================================== */}
-      <div className="bg-[#12161A] border-b-2 border-[#FFC600]/40 z-20 shadow-md">
-        {/* ROW 1: THE DEDICATED LIVE COMMENTARY BOX (KHUNG BÌNH LUẬN TRỰC TIẾP) */}
-        <div className="px-3 sm:px-5 py-2.5 bg-gradient-to-r from-[#2A0B0B] via-[#161B20] to-[#261A08] flex items-center justify-between gap-3 border-b border-white/10">
-          <div className="flex items-center gap-2.5 overflow-hidden flex-1 min-w-0">
-            {/* Live Pulsing Microphone Badge */}
-            <div className="flex items-center gap-1.5 bg-red-600 text-white text-[11px] font-black uppercase px-2.5 py-1 rounded-full shadow-md flex-shrink-0 animate-pulse tracking-wide">
-              <span className="w-2 h-2 rounded-full bg-white animate-ping" />
-              <span>{commentary.icon || '🎙️'} BÌNH LUẬN TRỰC TIẾP</span>
+      <div className="bg-[#0D1117] border-b-4 border-[#FFC600] z-20 shadow-2xl transition-all duration-300">
+        {/* ROW 1: TV BROADCAST TOP BAR (Thanh tiêu đề truyền hình trực tiếp) */}
+        <div className="px-3 sm:px-6 py-2 bg-gradient-to-r from-[#220B0B] via-[#12171E] to-[#201607] flex items-center justify-between gap-3 border-b border-white/10 flex-wrap">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+            {/* Live On Air Badge */}
+            <div className="flex items-center gap-1.5 bg-red-600 text-white text-[11px] sm:text-xs font-black uppercase px-3 py-1 rounded-full shadow-lg tracking-wider animate-pulse">
+              <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping" />
+              <span>🔴 TV LIVE • BÌNH LUẬN TRỰC TIẾP</span>
             </div>
 
-            {/* Commentary text - large, vibrant, readable across the room */}
-            <div
-              key={commentary.time}
-              className="text-yellow-300 font-black text-xs sm:text-sm md:text-base truncate animate-fade-in flex items-center gap-2 drop-shadow-sm"
-            >
-              <span>{commentary.text}</span>
-            </div>
+            {/* Dynamic Event Category Pill */}
+            <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase border shadow-sm ${getCategoryBadgeStyle(commentary.type)}`}>
+              {commentary.type === 'kick'
+                ? '💥 CÚ ĐÁ TÌNH BẠN'
+                : commentary.type === 'slip'
+                ? '🍌 TAI NẠN VỎ CHUỐI'
+                : commentary.type === 'turbo'
+                ? '🚀 PHẢN LỰC PATE'
+                : commentary.type === 'distracted'
+                ? '🦋 BƯỚM ĐẬU SỐNG MŨI'
+                : commentary.type === 'overtake'
+                ? '⚡ ĐỔI NGÔI ĐẦU BẢNG'
+                : commentary.type === 'sprint'
+                ? '🔥 NƯỚC RÚT VỀ ĐÍCH'
+                : commentary.type === 'winner'
+                ? '🏆 QUÁN QUÂN VỀ ĐÍCH'
+                : '📢 TIÊU ĐIỂM ĐƯỜNG ĐUA'}
+            </span>
+
+            {/* Leading Cat Quick Indicator */}
+            {liveLeaders[0] && isRunning && (
+              <span className="hidden md:flex items-center gap-1 text-[11px] font-black text-yellow-300 bg-yellow-500/20 px-2.5 py-0.5 rounded-full border border-yellow-400/30">
+                <span>👑 Dẫn đầu:</span>
+                <span className="underline">Mèo #{liveLeaders[0].number} ({liveLeaders[0].name})</span>
+              </span>
+            )}
           </div>
 
-          {/* Slapstick Troll Mode Status Badge */}
-          <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Right Controls: Troll Mode & Toggle Cat Status HUD */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowCatStatusHud(!showCatStatusHud)}
+              className="text-[11px] font-bold text-stone-300 hover:text-white bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded-lg transition border border-white/15 flex items-center gap-1"
+              title="Ẩn hoặc hiện bảng trạng thái từng chú mèo"
+            >
+              <span>📊</span>
+              <span>{showCatStatusHud ? 'Thu gọn trạng thái' : 'Hiện trạng thái mèo'}</span>
+            </button>
+
             {trollModeEnabled ? (
-              <span className="text-[11px] text-amber-300 font-black flex items-center gap-1 bg-amber-500/20 px-3 py-1 rounded-full border border-amber-400/40 shadow">
+              <span className="text-[11px] text-amber-300 font-black flex items-center gap-1 bg-amber-500/20 px-2.5 py-1 rounded-full border border-amber-400/40 shadow">
                 <span>⚡</span>
                 <span className="hidden sm:inline">CHẾ ĐỘ</span>
                 <span>ĐUA ĐỂU: BẬT</span>
@@ -1641,33 +1809,158 @@ export default function CatRaceTimer() {
           </div>
         </div>
 
-        {/* ROW 2: LIVE SPEED LEADERBOARD TICKER */}
-        <div className="px-3 sm:px-5 py-1.5 bg-[#0C1014] text-white text-xs flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 overflow-x-auto py-0.5 scrollbar-none">
-            <span className="text-amber-400 font-black uppercase text-[11px] tracking-wider flex items-center gap-1 flex-shrink-0">
-              🏆 TOP DẪN ĐẦU:
-            </span>
-            {liveLeaders.map((r, i) => (
-              <span
-                key={r.id}
-                className={`whitespace-nowrap flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-bold transition ${
-                  i === 0
-                    ? 'bg-yellow-400/20 text-yellow-300 border border-yellow-400/40 font-black'
-                    : i === 1
-                    ? 'bg-stone-300/15 text-stone-200 border border-stone-400/30'
-                    : 'bg-amber-700/20 text-amber-300 border border-amber-700/30'
-                }`}
-              >
-                <span>{i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}</span>
-                <span>Mèo {r.number} ({r.name})</span>
-              </span>
-            ))}
-          </div>
+        {/* ROW 2: THE BIG HEADLINE EVENT DISPLAY (Ô BÌNH LUẬN TO KHỔNG LỒ DÀNH CHO TIVI & LAPTOP) */}
+        <div className="px-3 sm:px-6 py-2.5 sm:py-3.5">
+          <div
+            key={commentary.time}
+            className={`p-3.5 sm:p-5 rounded-2xl border-2 sm:border-3 shadow-2xl transition-all duration-300 relative overflow-hidden ${getHeadlineCardStyle(commentary.type)}`}
+          >
+            {/* Background watermarked large icon */}
+            <div className="absolute right-3 sm:right-6 -bottom-3 text-6xl sm:text-7xl opacity-15 pointer-events-none select-none">
+              {commentary.icon || '🎙️'}
+            </div>
 
-          <span className="text-stone-400 text-[11px] hidden md:inline font-mono opacity-80 whitespace-nowrap">
-            🏟️ ĐƯỜNG ĐUA V ENGLISH HOUSE
-          </span>
+            {/* Headline Subtitle */}
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="text-xl sm:text-2xl drop-shadow">{commentary.icon || '📢'}</span>
+              <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-300 drop-shadow">
+                {commentary.headline || 'BÌNH LUẬN TRỰC TIẾP TỪNG KHOẢNH KHẮC'}
+              </span>
+            </div>
+
+            {/* Main Headline Text (Massive, Bold, High Contrast, Readable from TV across room) */}
+            <p className="text-base sm:text-xl md:text-2xl lg:text-3xl font-black text-white leading-snug tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+              {commentary.text}
+            </p>
+
+            {/* Visual Action Banner (Clash Cards for Kicks, Slips, Turbos, Overtakes) */}
+            {commentary.actorA && (
+              <div className="mt-2.5 pt-2 border-t border-white/20 flex items-center gap-2 sm:gap-3 flex-wrap">
+                {/* Actor A Pill */}
+                <div className="flex items-center gap-2 px-3 py-1 bg-black/60 border border-white/40 rounded-xl shadow-md">
+                  <span
+                    className="w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center font-black text-[11px] text-white border border-white/60 shadow"
+                    style={{ backgroundColor: commentary.actorA.furColor || '#E06D28' }}
+                  >
+                    #{commentary.actorA.number}
+                  </span>
+                  <span className="text-white font-black text-xs sm:text-sm">
+                    {commentary.actorA.name}
+                  </span>
+                </div>
+
+                {/* Clash connector & Actor B */}
+                {commentary.type === 'kick' && commentary.actorB ? (
+                  <>
+                    <span className="text-yellow-300 font-black text-xs sm:text-sm animate-pulse flex items-center gap-1">
+                      <span>💥</span>
+                      <span className="uppercase">TUNG CƯỚC ĐÁ (-5m)</span>
+                      <span>🦶 ──▶</span>
+                    </span>
+                    <div className="flex items-center gap-2 px-3 py-1 bg-orange-950/80 border border-orange-400 rounded-xl shadow-md">
+                      <span
+                        className="w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center font-black text-[11px] text-white border border-white/60 shadow"
+                        style={{ backgroundColor: commentary.actorB.furColor || '#4A5568' }}
+                      >
+                        #{commentary.actorB.number}
+                      </span>
+                      <span className="text-orange-200 font-black text-xs sm:text-sm">
+                        {commentary.actorB.name}
+                      </span>
+                      <span className="text-xs">😵</span>
+                    </div>
+                  </>
+                ) : commentary.type === 'overtake' && commentary.actorB ? (
+                  <>
+                    <span className="text-yellow-300 font-black text-xs sm:text-sm animate-pulse flex items-center gap-1">
+                      <span>⚡</span>
+                      <span className="uppercase">VƯỢT MẶT SOÁN NGÔI</span>
+                      <span>──▶</span>
+                    </span>
+                    <div className="flex items-center gap-2 px-3 py-1 bg-stone-900/80 border border-stone-400 rounded-xl shadow-md">
+                      <span
+                        className="w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center font-black text-[11px] text-white border border-white/60 shadow"
+                        style={{ backgroundColor: commentary.actorB.furColor || '#4A5568' }}
+                      >
+                        #{commentary.actorB.number}
+                      </span>
+                      <span className="text-stone-300 font-black text-xs sm:text-sm">
+                        {commentary.actorB.name}
+                      </span>
+                      <span className="text-xs">🥈</span>
+                    </div>
+                  </>
+                ) : commentary.type === 'slip' ? (
+                  <span className="text-yellow-300 font-bold text-xs sm:text-sm flex items-center gap-1.5">
+                    <span>🍌</span>
+                    <span>Đang bị trượt chân té lăn quay xoay 720 độ trên đường đua!</span>
+                  </span>
+                ) : commentary.type === 'turbo' ? (
+                  <span className="text-cyan-300 font-bold text-xs sm:text-sm flex items-center gap-1.5">
+                    <span>🚀🔥</span>
+                    <span>Bật phản lực pate siêu tốc, bứt phá thêm +9 mét!</span>
+                  </span>
+                ) : commentary.type === 'distracted' ? (
+                  <span className="text-purple-300 font-bold text-xs sm:text-sm flex items-center gap-1.5">
+                    <span>🦋</span>
+                    <span>Đang ngắm bướm bắt hoa, đứng hình tại chỗ!</span>
+                  </span>
+                ) : null}
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* ROW 3: REAL-TIME CAT STATUS HUD (BẢNG TRẠNG THÁI TỪNG CHÚ MÈO ĐANG CHẠY) */}
+        {showCatStatusHud && (
+          <div className="px-3 sm:px-6 pb-2.5 pt-1 border-t border-white/10 bg-[#080B0F]">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[10px] sm:text-[11px] font-black uppercase text-amber-400 tracking-wider flex items-center gap-1.5">
+                <span>📊</span>
+                <span>BẢNG TRẠNG THÁI TỪNG CHÚ MÈO (TRỰC TIẾP TRÊN ĐƯỜNG ĐUA)</span>
+              </span>
+              <span className="text-[10px] text-stone-400 font-mono">
+                {racers.length} Tuyển thủ • Cập nhật tức thì
+              </span>
+            </div>
+
+            {/* Grid of Racer Status Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+              {racers.map((racer) => {
+                const st = getRacerLiveStatus(racer);
+                return (
+                  <div
+                    key={racer.id}
+                    className={`p-2 rounded-xl border flex flex-col gap-1.5 transition-all duration-200 select-none shadow-sm ${st.cardBorder}`}
+                  >
+                    <div className="flex items-center justify-between gap-1.5">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span
+                          className="w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center font-black text-[10px] sm:text-xs text-white border border-white/60 flex-shrink-0 shadow-sm"
+                          style={{ backgroundColor: racer.furColor || '#E06D28' }}
+                        >
+                          {racer.number}
+                        </span>
+                        <span className="font-black text-xs sm:text-sm text-white truncate" title={racer.name}>
+                          {racer.name}
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-mono text-stone-400 font-bold flex-shrink-0">
+                        {Math.round(positions[racer.id] || 0)}%
+                      </span>
+                    </div>
+
+                    {/* Animated Live Status Badge */}
+                    <div className={`px-2 py-0.5 rounded-lg text-[10px] sm:text-[11px] text-center truncate flex items-center justify-center gap-1 ${st.className}`}>
+                      <span>{st.icon}</span>
+                      <span className="truncate">{st.badge}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ==================================================================== */}

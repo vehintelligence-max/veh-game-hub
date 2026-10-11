@@ -15,6 +15,8 @@ app.use(cors());
 app.use(express.json());
 
 // High-Fidelity Vietnamese & English Text-to-Speech Proxy endpoint (Real native human voice)
+const ttsMemoryCache = new Map();
+
 app.get('/api/tts', (req, res) => {
   const text = String(req.query.text || '').trim();
   const lang = String(req.query.lang || req.query.tl || 'vi').toLowerCase();
@@ -24,6 +26,17 @@ app.get('/api/tts', (req, res) => {
 
   const targetLang = lang.startsWith('vi') ? 'vi' : 'en';
   const chunk = text.length > 200 ? text.substring(0, 200) : text;
+  const cacheKey = `${targetLang}:${chunk}`;
+
+  if (ttsMemoryCache.has(cacheKey)) {
+    const cachedBuf = ttsMemoryCache.get(cacheKey);
+    res.setHeader('Content-Type', 'audio/mpeg');
+    res.setHeader('Content-Length', cachedBuf.length);
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.setHeader('Accept-Ranges', 'bytes');
+    return res.end(cachedBuf);
+  }
+
   const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${encodeURIComponent(targetLang)}&q=${encodeURIComponent(chunk)}`;
 
   const request = https.get(ttsUrl, {
@@ -36,9 +49,19 @@ app.get('/api/tts', (req, res) => {
       console.warn(`[TTS Proxy] Upstream status: ${ttsRes.statusCode}`);
       return res.status(ttsRes.statusCode).send('TTS upstream error');
     }
-    res.setHeader('Content-Type', 'audio/mpeg');
-    res.setHeader('Cache-Control', 'public, max-age=86400');
-    ttsRes.pipe(res);
+
+    const chunks = [];
+    ttsRes.on('data', (d) => chunks.push(d));
+    ttsRes.on('end', () => {
+      const fullBuffer = Buffer.concat(chunks);
+      ttsMemoryCache.set(cacheKey, fullBuffer);
+      console.log(`[TTS Proxy] Successfully fetched and cached: "${chunk.substring(0, 45)}" (${fullBuffer.length} bytes)`);
+      res.setHeader('Content-Type', 'audio/mpeg');
+      res.setHeader('Content-Length', fullBuffer.length);
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      res.setHeader('Accept-Ranges', 'bytes');
+      res.end(fullBuffer);
+    });
   });
 
   request.on('error', (err) => {
