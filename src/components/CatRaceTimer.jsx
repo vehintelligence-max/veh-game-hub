@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Settings, Music, Bell, Play, Pause, RotateCcw, Volume2, VolumeX,
   Maximize2, Minimize2, Trophy, Sparkles, Flag, Plus, Minus, Trash2,
-  Check, X, Users, RefreshCw, FileText, ArrowRight
+  Check, X, Users, RefreshCw, FileText, ArrowRight, Zap, Edit3,
+  Bookmark, Save, Flame, Shuffle
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { sound } from '../utils/sound';
@@ -68,32 +69,96 @@ const PRESET_TIMES = [
   { label: '5 Phút', seconds: 300 },
 ];
 
-// Sample class rosters for 1-click loading
-const SAMPLE_ROSTERS = {
-  kids: [
-    'Bảo An', 'Gia Huy', 'Minh Khôi', 'Khánh Linh', 'Tuấn Kiệt',
-    'Bảo Châu', 'Đức Anh', 'Hương Giang', 'Minh Quân', 'Trúc Anh'
-  ],
-  teens: [
-    'Hoàng Long', 'Phương Thảo', 'Quốc Bảo', 'Thùy Chi', 'Minh Trí',
-    'Bảo Ngọc', 'Quang Hải', 'Thanh Hằng', 'Tuấn Tú', 'Kim Ngân',
-    'Tiến Đạt', 'Yến Nhi', 'Đăng Khoa', 'Khánh Vy', 'Thái An', 'Gia Bảo'
-  ],
-  large: [
-    'An', 'Bảo', 'Chi', 'Dũng', 'Emily', 'Hải', 'Linh', 'Minh',
-    'Nam', 'Phương', 'Quân', 'Sơn', 'Trang', 'Vũ', 'Khoa', 'Thịnh',
-    'Kiên', 'Hà', 'Vy', 'Nhi', 'Huy', 'Tùng', 'Đức', 'Lâm'
-  ]
-};
+// Authentic V English House Class Rosters linked directly to classes
+const VHOUSE_CLASSES = [
+  {
+    id: 'a01',
+    name: 'Lớp A01 (Primary / Kids)',
+    category: 'Tiểu học',
+    badge: '🎒 Kids',
+    students: [
+      'Tuấn Minh', 'Gia Bảo', 'Quỳnh Chi', 'Hoàng An', 'Tiến Dũng',
+      'Bảo Ngọc', 'Phương Linh', 'Minh Khang', 'Bảo An', 'Gia Huy',
+      'Minh Khôi', 'Khánh Linh'
+    ]
+  },
+  {
+    id: 'b02',
+    name: 'Lớp B02 (Junior / Teens)',
+    category: 'Trung học',
+    badge: '🏫 Teens',
+    students: [
+      'Quốc Bảo', 'Tuệ Minh', 'Phương Vy', 'Trọng Nhân', 'Gia Thịnh',
+      'Tô Châu', 'Nguyên Danh', 'Ánh Nhã', 'Hoàng Long', 'Phương Thảo',
+      'Thùy Chi', 'Minh Trí', 'Thanh Hằng', 'Tuấn Tú', 'Kim Ngân', 'Đăng Khoa'
+    ]
+  },
+  {
+    id: 'ielts',
+    name: 'Lớp IELTS Target 6.5+',
+    category: 'Luyện thi chứng chỉ',
+    badge: '🎯 IELTS',
+    students: [
+      'Hoàng Phúc', 'Thu Trang', 'Anh Tuấn', 'Tường Vy', 'Khánh Linh',
+      'Đức Hải', 'Thảo Nhi', 'Hải Yến', 'Trần Nam', 'Quang Vinh'
+    ]
+  },
+  {
+    id: 'leader',
+    name: 'Nhà LEADER (V House Power-Up)',
+    category: 'Nhà thi đua',
+    badge: '👑 LEADER',
+    students: [
+      'Lê Kiều Quốc Bảo', 'Trần Vũ Tuệ Minh', 'Nguyễn Hoàng Phương Vy',
+      'Lê Trọng Nhân', 'Nguyễn Gia Thịnh'
+    ]
+  },
+  {
+    id: 'dweller',
+    name: 'Nhà DWELLER (V House Power-Up)',
+    category: 'Nhà thi đua',
+    badge: '🏰 DWELLER',
+    students: [
+      'Đỗ Nguyên Danh', 'Trương Bảo Ngọc', 'Bùi Như Ngọc Vy',
+      'Nguyễn Minh Hồng Thương', 'Nguyễn Thụy Ánh Nhã'
+    ]
+  },
+  {
+    id: 'b1',
+    name: 'Nhà B1 (V House Power-Up)',
+    category: 'Nhà thi đua',
+    badge: '⚡ B1',
+    students: [
+      'Mai Hoàng Nam', 'Nguyễn Hoài Nam', 'Lê Thiện Nhân',
+      'Võ Đức Huy', 'Phạm Quỳnh Anh'
+    ]
+  }
+];
+
+// 24 Funny Troll Cat Names for slapstick comedy races
+const FUNNY_CAT_NAMES = [
+  'Mèo Béo Ú', 'Mèo Ngáo Ngơ', 'Mèo Lười Chảy Thây', 'Mèo Cục Súc',
+  'Mèo Đại Gia', 'Mèo Siêu Quậy', 'Mèo Hổ Báo', 'Mèo Mê Ngủ',
+  'Mèo Đểu Cáng', 'Mèo Giận Dữ', 'Mèo Lươn Lẹo', 'Mèo Đam Mê Ăn',
+  'Mèo Bay Lắc', 'Mèo Trùm Trường', 'Mèo Hóng Hớt', 'Mèo Quậy Phá',
+  'Mèo Xoạc Chân', 'Mèo Cà Khịa', 'Mèo Chiến Thần', 'Mèo Bất Tử',
+  'Mèo Bánh Bao', 'Mèo Báo Thủ', 'Mèo Vô Địch', 'Mèo Tốc Độ'
+];
 
 // ============================================================================
-// SVG ATHLETIC RUNNING CAT (Galloping on the Track with Dust Puffs & Number Bib)
+// SVG ATHLETIC RUNNING CAT (Galloping on the Track with Slapstick Stunts)
 // ============================================================================
-function RunningCat({ racer, isRunning, isWinner, isLeader }) {
+function RunningCat({ racer, isRunning, isWinner, isLeader, effect }) {
   const handleCatClick = () => {
     const variants = ['excited', 'kitten', 'default', 'deep'];
     sound.playMeow(variants[(racer.number - 1) % 4]);
   };
+
+  const isTumbled = effect?.type === 'tumbled';
+  const isKicking = effect?.type === 'kicking';
+  const isStumbled = effect?.type === 'stumbled';
+  const isTurbo = effect?.type === 'turbo';
+  const isDistracted = effect?.type === 'distracted';
 
   return (
     <div
@@ -102,7 +167,7 @@ function RunningCat({ racer, isRunning, isWinner, isLeader }) {
       title={`Nhấn vào ${racer.name} để nghe tiếng mèo kêu!`}
     >
       {/* 1. Dust Puffs kicking up behind rear paws when sprinting on track */}
-      {isRunning && (
+      {isRunning && !isTumbled && (
         <div className="absolute -left-7 bottom-2.5 flex gap-1 pointer-events-none select-none z-10">
           <span className="text-sm inline-block animate-[dustPuff_0.32s_ease-out_infinite]">💨</span>
           <span className="text-xs inline-block animate-[dustPuff_0.4s_ease-out_infinite_0.08s]">💨</span>
@@ -110,19 +175,82 @@ function RunningCat({ racer, isRunning, isWinner, isLeader }) {
         </div>
       )}
 
+      {/* Turbo Rocket Flames */}
+      {isTurbo && (
+        <div className="absolute -left-12 bottom-1 flex gap-0.5 pointer-events-none z-20 text-lg animate-pulse">
+          <span>🔥</span>
+          <span>🚀</span>
+          <span>🔥</span>
+        </div>
+      )}
+
+      {/* Banana Peel when tumbled */}
+      {isTumbled && (
+        <div className="absolute -bottom-3 left-4 text-2xl pointer-events-none z-30 animate-bounce">
+          🍌
+        </div>
+      )}
+
+      {/* Spinning Dizzy Stars when tumbled or stumbled */}
+      {(isTumbled || isStumbled) && (
+        <div className="absolute -top-7 z-40 text-sm font-black animate-[spinDizzyStars_0.9s_linear_infinite] pointer-events-none drop-shadow">
+          💫 ⭐ 💫
+        </div>
+      )}
+
+      {/* Butterfly when distracted */}
+      {isDistracted && (
+        <div className="absolute -top-6 right-2 text-xl z-40 animate-bounce pointer-events-none">
+          🦋
+        </div>
+      )}
+
+      {/* SLAPSTICK COMIC ACTION POP BUBBLE */}
+      {effect && (
+        <div
+          className={`absolute -top-8 z-40 font-black text-[10px] px-2.5 py-0.5 rounded-full shadow-xl border-2 whitespace-nowrap animate-[comicPop_0.3s_cubic-bezier(0.34,1.56,0.64,1)] ${
+            isKicking
+              ? 'bg-rose-600 text-white border-white animate-[catSideKick_0.5s_infinite]'
+              : isTumbled
+              ? 'bg-yellow-400 text-stone-900 border-black'
+              : isStumbled
+              ? 'bg-orange-500 text-white border-white'
+              : isTurbo
+              ? 'bg-cyan-500 text-stone-900 border-white'
+              : 'bg-purple-600 text-white border-white'
+          }`}
+        >
+          {effect.label || effect.type}
+        </div>
+      )}
+
       {/* 2. Leading Star / Crown if leading the pack */}
-      {isLeader && isRunning && (
+      {isLeader && isRunning && !effect && (
         <div className="absolute -top-4 right-6 z-30 animate-bounce text-xs font-black drop-shadow">
           ⭐
         </div>
       )}
 
-      {/* 3. The Running Cat Actor SVG */}
+      {/* 3. The Running Cat Actor SVG with Dynamic Slapstick Body Style */}
       <svg
         viewBox="0 0 120 86"
         className={`w-24 h-16 sm:w-28 sm:h-20 drop-shadow-md transition-transform ${
           isWinner ? 'scale-115 drop-shadow-2xl' : ''
         }`}
+        style={{
+          transform: isTumbled
+            ? 'rotate(720deg) scale(0.88)'
+            : isKicking
+            ? 'rotate(-14deg) scale(1.15) translateX(8px)'
+            : isStumbled
+            ? 'rotate(14deg) translateX(-10px)'
+            : 'none',
+          transition: isTumbled
+            ? 'transform 1.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
+            : isKicking || isStumbled
+            ? 'transform 0.25s ease-out'
+            : 'transform 0.2s ease-out'
+        }}
       >
         <defs>
           <linearGradient id={`furGrad_${racer.id}`} x1="0" y1="0" x2="0" y2="1">
@@ -348,6 +476,30 @@ export default function CatRaceTimer() {
   const crossedTimesRef = useRef({});
   const finishTriggeredRef = useRef(false);
 
+  // ==========================================================================
+  // SLAPSTICK CHAOS & TROLL RACING MODE (Kicks, slips, turbos, distractions)
+  // ==========================================================================
+  const [trollModeEnabled, setTrollModeEnabled] = useState(true);
+  const [catEffects, setCatEffects] = useState({});
+  const catEffectsRef = useRef({});
+  const lastSlapstickEventTimeRef = useRef(0);
+  const [commentary, setCommentary] = useState({
+    text: 'Chào mừng bạn đến với Giải Đua Mèo V English House! Chúc các chú mèo thi đấu fair-play (hoặc không...)!',
+    type: 'normal',
+    icon: '📢',
+    time: Date.now()
+  });
+
+  // ==========================================================================
+  // CUSTOM NAMING & LINKED CLASS ROSTERS
+  // ==========================================================================
+  const [editingRacer, setEditingRacer] = useState(null);
+  const [editNameInput, setEditNameInput] = useState('');
+  const [settingsTab, setSettingsTab] = useState('general'); // 'general' | 'names' | 'classes' | 'troll'
+  const [customClasses, setCustomClasses] = useState([]);
+  const [newClassName, setNewClassName] = useState('');
+  const [newClassRoster, setNewClassRoster] = useState('');
+
   // Audio & Display Settings
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [alarmBellEnabled, setAlarmBellEnabled] = useState(true);
@@ -394,6 +546,15 @@ export default function CatRaceTimer() {
     crossingOrderRef.current = [];
     crossedTimesRef.current = {};
     finishTriggeredRef.current = false;
+    catEffectsRef.current = {};
+    setCatEffects({});
+    lastSlapstickEventTimeRef.current = 0;
+    setCommentary({
+      text: 'Đường đua đã sẵn sàng! Nhấn Bắt Đầu để xuất phát!',
+      type: 'normal',
+      icon: '🏁',
+      time: Date.now()
+    });
     setTotalSeconds(newTotal);
     setRemainingSeconds(newTotal);
     elapsedOffsetRef.current = 0;
@@ -511,6 +672,128 @@ export default function CatRaceTimer() {
     setIsSettingsOpen(false);
   };
 
+  // Load saved custom classes from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('vhouse_custom_classes');
+      if (saved) {
+        setCustomClasses(JSON.parse(saved));
+      }
+    } catch (e) {
+      console.warn('Failed to parse saved classes', e);
+    }
+  }, []);
+
+  // 1-Click Load Any Class Roster (V House or Custom)
+  const handleLoadClassRoster = (classObj) => {
+    sound.playCorrect();
+    const newRacers = classObj.students.map((name, idx) => buildRacer(idx + 1, name));
+    setRacers(newRacers);
+    handleResetRace(totalSeconds, newRacers);
+    setCommentary({
+      text: `🏫 Đã nạp ${classObj.name} (${classObj.students.length} học sinh)! Chúc các chú mèo bứt phá!`,
+      type: 'info',
+      icon: '🏫',
+      time: Date.now()
+    });
+    setIsSettingsOpen(false);
+  };
+
+  // Save a new custom class to localStorage
+  const handleSaveCustomClass = (e) => {
+    e.preventDefault();
+    const cName = newClassName.trim();
+    const students = newClassRoster
+      .split('\n')
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+
+    if (!cName) {
+      alert('Vui lòng nhập tên lớp học!');
+      return;
+    }
+    if (students.length < 2) {
+      alert('Vui lòng nhập danh sách ít nhất 2 học sinh!');
+      return;
+    }
+
+    const newClassObj = {
+      id: `custom_${Date.now()}`,
+      name: cName,
+      category: 'Lớp Tự Tạo',
+      badge: '📝 Tự tạo',
+      students
+    };
+
+    const updated = [newClassObj, ...customClasses];
+    setCustomClasses(updated);
+    try {
+      localStorage.setItem('vhouse_custom_classes', JSON.stringify(updated));
+    } catch (err) {}
+
+    sound.playCorrect();
+    handleLoadClassRoster(newClassObj);
+    setNewClassName('');
+    setNewClassRoster('');
+  };
+
+  // Delete a custom class from localStorage
+  const handleDeleteCustomClass = (classId) => {
+    const updated = customClasses.filter((c) => c.id !== classId);
+    setCustomClasses(updated);
+    try {
+      localStorage.setItem('vhouse_custom_classes', JSON.stringify(updated));
+    } catch (err) {}
+  };
+
+  // Rename a specific racer
+  const handleRenameRacer = (racerId, newName) => {
+    const trimmed = String(newName || '').trim();
+    if (!trimmed) return;
+    const updated = racers.map((r) => {
+      if (r.id === racerId) {
+        return { ...r, name: trimmed, label: trimmed };
+      }
+      return r;
+    });
+    setRacers(updated);
+    if (editingRacer?.id === racerId) {
+      setEditingRacer(null);
+    }
+  };
+
+  // 1-Click Randomize All Names with Funny Personalities
+  const handleRandomizeFunnyNames = () => {
+    sound.playClick();
+    const shuffled = [...FUNNY_CAT_NAMES].sort(() => Math.random() - 0.5);
+    const updated = racers.map((r, idx) => {
+      const fName = shuffled[idx % shuffled.length];
+      return { ...r, name: `${fName} #${r.number}`, label: `${fName} #${r.number}` };
+    });
+    setRacers(updated);
+    setCommentary({
+      text: '🎲 Đã đổi tên hài hước cho toàn bộ dàn mèo đua! Xem ai sẽ giở trò đểu nhất!',
+      type: 'troll',
+      icon: '😼',
+      time: Date.now()
+    });
+  };
+
+  // Reset to default numeric names: Mèo Số 1, 2, 3...
+  const handleResetNumericNames = () => {
+    sound.playClick();
+    const updated = racers.map((r) => {
+      return { ...r, name: `Mèo Số ${r.number}`, label: `Mèo Số ${r.number}` };
+    });
+    setRacers(updated);
+  };
+
+  // Open inline rename modal for clicked cat
+  const handleOpenRenameModal = (racer) => {
+    setEditingRacer(racer);
+    setEditNameInput(racer.name);
+  };
+
   // Smooth 60fps Animation & Physics Loop (Silky fluid movement, no jerky jumps)
   useEffect(() => {
     if (!isRunning) {
@@ -606,6 +889,139 @@ export default function CatRaceTimer() {
           leadId = r.id;
         }
       });
+
+      // ======================================================================
+      // SLAPSTICK CHAOS & TROLL RACING ENGINE (Kicks, slips, turbos, bướm)
+      // ======================================================================
+      // 1. Clean up expired comic effects
+      let effectsChanged = false;
+      const curEffects = { ...catEffectsRef.current };
+      Object.keys(curEffects).forEach((id) => {
+        if (curEffects[id].expiresAt <= now) {
+          delete curEffects[id];
+          effectsChanged = true;
+        }
+      });
+      if (effectsChanged) {
+        catEffectsRef.current = curEffects;
+        setCatEffects(curEffects);
+      }
+
+      // 2. Trigger random slapstick event if Troll Mode is active
+      if (trollModeEnabled && progress >= 0.12 && progress <= 0.94) {
+        if (now - lastSlapstickEventTimeRef.current > 3200) {
+          lastSlapstickEventTimeRef.current = now;
+          const roll = Math.random();
+
+          if (roll < 0.44 && racers.length >= 2) {
+            // EVENT A: CÚ ĐÁ TÌNH BẠN (SIDE KICK TO ADJACENT LANE)
+            const eligiblePairs = [];
+            for (let i = 0; i < racers.length - 1; i++) {
+              const rA = racers[i];
+              const rB = racers[i + 1];
+              const pA = nextPos[rA.id] || 0;
+              const pB = nextPos[rB.id] || 0;
+              if (Math.abs(pA - pB) <= 12 && pA < 96 && pB < 96) {
+                eligiblePairs.push({ rA, rB });
+              }
+            }
+
+            if (eligiblePairs.length > 0) {
+              const pair = eligiblePairs[Math.floor(Math.random() * eligiblePairs.length)];
+              const pA = nextPos[pair.rA.id] || 0;
+              const pB = nextPos[pair.rB.id] || 0;
+              const kicker = pA <= pB ? pair.rA : pair.rB;
+              const victim = kicker.id === pair.rA.id ? pair.rB : pair.rA;
+
+              const updatedEffects = { ...catEffectsRef.current };
+              updatedEffects[kicker.id] = { type: 'kicking', expiresAt: now + 900, label: 'Tung Cước! 😾💥' };
+              updatedEffects[victim.id] = { type: 'stumbled', expiresAt: now + 1200, label: 'Dính Đòn! 😵' };
+              catEffectsRef.current = updatedEffects;
+              setCatEffects(updatedEffects);
+
+              nextPos[kicker.id] = Math.min(106, (nextPos[kicker.id] || 0) + 5.5);
+              nextPos[victim.id] = Math.max(5, (nextPos[victim.id] || 0) - 5);
+
+              if (soundEnabled) {
+                sound.playKickSound();
+                setTimeout(() => sound.playStartledMeow(), 160);
+              }
+
+              setCommentary({
+                text: `💥 ${kicker.name} tung cú đá song phi knock-out ${victim.name} để chiếm vị trí!`,
+                type: 'kick',
+                icon: '💥',
+                time: now
+              });
+            }
+          } else if (roll < 0.70) {
+            // EVENT B: TÉ LĂN QUAY TRƯỢT VỎ CHUỐI (BANANA SLIP TUMBLE)
+            const activeRacers = racers.filter((r) => (nextPos[r.id] || 0) > 15 && (nextPos[r.id] || 0) < 95);
+            if (activeRacers.length > 0) {
+              const victim = activeRacers[Math.floor(Math.random() * activeRacers.length)];
+              const updatedEffects = { ...catEffectsRef.current };
+              updatedEffects[victim.id] = { type: 'tumbled', expiresAt: now + 1400, label: 'Té Lăn Quay! 🍌' };
+              catEffectsRef.current = updatedEffects;
+              setCatEffects(updatedEffects);
+
+              nextPos[victim.id] = Math.max(5, (nextPos[victim.id] || 0) - 4.5);
+
+              if (soundEnabled) {
+                sound.playSlipSound();
+                setTimeout(() => sound.playBoingSound(), 260);
+              }
+
+              setCommentary({
+                text: `🍌 Ôi trời ơi! ${victim.name} vừa đạp trúng vỏ chuối té lăn quay 3 vòng!`,
+                type: 'slip',
+                icon: '🍌',
+                time: now
+              });
+            }
+          } else if (roll < 0.88) {
+            // EVENT C: LON PATE CÁ HỒI SIÊU TỐC (TUNA CAN TURBO BOOST)
+            const sorted = [...racers].sort((a, b) => (nextPos[a.id] || 0) - (nextPos[b.id] || 0));
+            const trailingRacer = sorted[Math.floor(Math.random() * Math.min(3, sorted.length))] || racers[0];
+
+            const updatedEffects = { ...catEffectsRef.current };
+            updatedEffects[trailingRacer.id] = { type: 'turbo', expiresAt: now + 1600, label: 'Pate Siêu Tốc! 🐟🚀' };
+            catEffectsRef.current = updatedEffects;
+            setCatEffects(updatedEffects);
+
+            nextPos[trailingRacer.id] = Math.min(108, (nextPos[trailingRacer.id] || 0) + 9);
+
+            if (soundEnabled) {
+              sound.playTurboSound();
+              setTimeout(() => sound.playQuickMew('excited'), 200);
+            }
+
+            setCommentary({
+              text: `🐟 ${trailingRacer.name} húp trọn lon Pate cá hồi, hóa tên lửa bứt phá!`,
+              type: 'turbo',
+              icon: '🚀',
+              time: now
+            });
+          } else {
+            // EVENT D: BƯỚM ĐẬU MŨI ĐỨNG HÌNH (BUTTERFLY DISTRACTION)
+            const rTarget = racers[Math.floor(Math.random() * racers.length)];
+            const updatedEffects = { ...catEffectsRef.current };
+            updatedEffects[rTarget.id] = { type: 'distracted', expiresAt: now + 1200, label: 'Bắt Bướm! 🦋' };
+            catEffectsRef.current = updatedEffects;
+            setCatEffects(updatedEffects);
+
+            if (soundEnabled) {
+              sound.playBoingSound();
+            }
+
+            setCommentary({
+              text: `🦋 ${rTarget.name} bị con bướm đậu lên mũi, đứng hình mất 1 giây!`,
+              type: 'distracted',
+              icon: '🦋',
+              time: now
+            });
+          }
+        }
+      }
 
       setPositions(nextPos);
       setLeaderId(leadId);
@@ -938,6 +1354,29 @@ export default function CatRaceTimer() {
         </span>
       </div>
 
+      {/* HILARIOUS LIVE SLAPSTICK COMMENTARY BAR */}
+      <div className="bg-gradient-to-r from-red-950 via-[#1F2421] to-amber-950 text-white text-[11px] font-bold px-3 sm:px-4 py-1.5 flex items-center justify-between border-b border-yellow-500/30 z-20 shadow-inner">
+        <div className="flex items-center gap-2 overflow-hidden w-full">
+          <span className="bg-red-600 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full flex items-center gap-1 flex-shrink-0 animate-pulse shadow">
+            {commentary.icon} BÌNH LUẬN TRỰC TIẾP
+          </span>
+          <span className="text-yellow-200 font-bold text-xs truncate animate-fade-in" key={commentary.time}>
+            {commentary.text}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
+          {trollModeEnabled ? (
+            <span className="text-[10px] text-amber-300 font-black hidden sm:flex items-center gap-1 bg-black/50 px-2 py-0.5 rounded-full border border-yellow-400/30 shadow">
+              ⚡ ĐUA ĐỂU: BẬT
+            </span>
+          ) : (
+            <span className="text-[10px] text-stone-400 font-bold hidden sm:inline bg-black/30 px-2 py-0.5 rounded-full">
+              Đua chuẩn
+            </span>
+          )}
+        </div>
+      </div>
+
       {/* ==================================================================== */}
       {/* 2. THE ATHLETIC RUNNING TRACK (Terracotta Sports Surface & Lanes)      */}
       {/* ==================================================================== */}
@@ -1103,12 +1542,22 @@ export default function CatRaceTimer() {
                   isRunning={isRunning}
                   isWinner={isWin || isFirstAcross}
                   isLeader={isLead}
+                  effect={catEffects[racer.id]}
                 />
 
-                {/* Name / Jersey Tag below Cat */}
-                <span className="text-[10px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] bg-black/60 px-2.5 py-0.5 rounded-full whitespace-nowrap -mt-1 border border-white/10 shadow">
-                  {racer.name}
-                </span>
+                {/* Name / Jersey Tag below Cat with 1-Click Inline Rename */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenRenameModal(racer);
+                  }}
+                  className="text-[10px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] bg-black/65 hover:bg-amber-600 px-2.5 py-0.5 rounded-full whitespace-nowrap -mt-1 border border-white/20 shadow flex items-center gap-1 group/rename transition cursor-pointer"
+                  title={`Nhấp để đổi tên cho ${racer.name}`}
+                >
+                  <span>{racer.name}</span>
+                  <span className="text-[9px] opacity-60 group-hover/rename:opacity-100">✏️</span>
+                </button>
               </div>
             </div>
           );
@@ -1120,7 +1569,8 @@ export default function CatRaceTimer() {
       {/* ==================================================================== */}
       {isSettingsOpen && (
         <div className="absolute inset-0 z-40 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-white rounded-3xl p-5 sm:p-7 max-w-xl w-full text-[#1F2421] shadow-2xl border-4 border-[#FFC600] space-y-4 max-h-[92vh] overflow-y-auto">
+          <div className="bg-white rounded-3xl p-5 sm:p-7 max-w-2xl w-full text-[#1F2421] shadow-2xl border-4 border-[#FFC600] space-y-4 max-h-[92vh] overflow-y-auto">
+            {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-stone-200">
               <div className="flex items-center gap-2">
                 <Settings className="w-5 h-5 text-[#A67C1E]" />
@@ -1135,191 +1585,556 @@ export default function CatRaceTimer() {
               </button>
             </div>
 
-            {/* 1. Quick Presets for Countdown */}
-            <div>
-              <label className="text-xs font-black uppercase text-stone-500 block mb-2">
-                ⏱️ Chọn Nhanh Thời Gian Đếm Ngược:
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {PRESET_TIMES.map((preset) => (
-                  <button
-                    key={preset.seconds}
-                    type="button"
-                    onClick={() => handleSelectPreset(preset.seconds)}
-                    className={`p-2.5 rounded-xl font-black text-xs transition border text-center ${
-                      totalSeconds === preset.seconds
-                        ? 'bg-[#FFC600] text-[#1F2421] border-[#FFC600] shadow-sm'
-                        : 'bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100'
-                    }`}
-                  >
-                    {preset.label}
-                  </button>
-                ))}
-              </div>
+            {/* TAB NAVIGATION BAR */}
+            <div className="flex items-center gap-1.5 p-1 bg-stone-100 rounded-2xl border border-stone-200">
+              <button
+                type="button"
+                onClick={() => setSettingsTab('general')}
+                className={`flex-1 py-2 px-2.5 rounded-xl font-black text-xs transition flex items-center justify-center gap-1.5 ${
+                  settingsTab === 'general'
+                    ? 'bg-white text-[#1F2421] shadow-sm border border-stone-200/80'
+                    : 'text-stone-600 hover:text-black'
+                }`}
+              >
+                <span>⚙️</span>
+                <span className="hidden sm:inline">Thời Gian & Số Mèo</span>
+                <span className="sm:hidden">Cơ Bản</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSettingsTab('names')}
+                className={`flex-1 py-2 px-2.5 rounded-xl font-black text-xs transition flex items-center justify-center gap-1.5 ${
+                  settingsTab === 'names'
+                    ? 'bg-white text-[#1F2421] shadow-sm border border-stone-200/80'
+                    : 'text-stone-600 hover:text-black'
+                }`}
+              >
+                <span>🏷️</span>
+                <span>Đặt Tên ({racers.length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSettingsTab('classes')}
+                className={`flex-1 py-2 px-2.5 rounded-xl font-black text-xs transition flex items-center justify-center gap-1.5 ${
+                  settingsTab === 'classes'
+                    ? 'bg-white text-[#1F2421] shadow-sm border border-stone-200/80'
+                    : 'text-stone-600 hover:text-black'
+                }`}
+              >
+                <span>🏫</span>
+                <span>Danh Sách Lớp</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSettingsTab('troll')}
+                className={`flex-1 py-2 px-2.5 rounded-xl font-black text-xs transition flex items-center justify-center gap-1.5 ${
+                  settingsTab === 'troll'
+                    ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-sm'
+                    : 'text-stone-600 hover:text-black'
+                }`}
+              >
+                <span>💥</span>
+                <span className="hidden sm:inline">Đua Đểu (Troll)</span>
+                <span className="sm:hidden">Đua Đểu</span>
+              </button>
             </div>
 
-            {/* 2. Custom Time Form */}
-            <form onSubmit={handleApplyCustomTime} className="space-y-1.5">
-              <label className="text-xs font-black uppercase text-stone-500 block">
-                ✍️ Hoặc Nhập Thời Gian Tự Chọn:
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min="0"
-                  max="60"
-                  placeholder="0 Phút"
-                  value={customMin}
-                  onChange={(e) => setCustomMin(e.target.value)}
-                  className="w-1/2 p-2 bg-stone-50 border border-stone-300 rounded-xl text-xs font-bold text-center outline-none focus:border-[#FFC600]"
-                />
-                <span className="font-black text-base">:</span>
-                <input
-                  type="number"
-                  min="0"
-                  max="59"
-                  placeholder="39 Giây"
-                  value={customSec}
-                  onChange={(e) => setCustomSec(e.target.value)}
-                  className="w-1/2 p-2 bg-stone-50 border border-stone-300 rounded-xl text-xs font-bold text-center outline-none focus:border-[#FFC600]"
-                />
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-[#FFC600] text-[#1F2421] font-black text-xs rounded-xl shadow-duo-yellow hover:brightness-105 transition flex-shrink-0"
-                >
-                  Áp Dụng
-                </button>
-              </div>
-            </form>
+            {/* ================================================================ */}
+            {/* TAB 1: GENERAL SETTINGS (Time, Lanes, Sounds)                      */}
+            {/* ================================================================ */}
+            {settingsTab === 'general' && (
+              <div className="space-y-4">
+                {/* 1. Quick Presets for Countdown */}
+                <div>
+                  <label className="text-xs font-black uppercase text-stone-500 block mb-2">
+                    ⏱️ Chọn Nhanh Thời Gian Đếm Ngược:
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {PRESET_TIMES.map((preset) => (
+                      <button
+                        key={preset.seconds}
+                        type="button"
+                        onClick={() => handleSelectPreset(preset.seconds)}
+                        className={`p-2.5 rounded-xl font-black text-xs transition border text-center ${
+                          totalSeconds === preset.seconds
+                            ? 'bg-[#FFC600] text-[#1F2421] border-[#FFC600] shadow-sm'
+                            : 'bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100'
+                        }`}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-            {/* 3. Unlimited Lane Selection */}
-            <div className="pt-2 border-t border-stone-200">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-black uppercase text-stone-700">
-                  🐱 Số Lượng Mèo Đua (Không Giới Hạn): <span className="text-emerald-700 font-extrabold">{racers.length} Mèo</span>
-                </label>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={handleAddRacer}
-                    className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-lg transition flex items-center gap-1 shadow"
-                  >
-                    <Plus className="w-3.5 h-3.5" /> Thêm Mèo
-                  </button>
-                  {racers.length > 2 && (
+                {/* 2. Custom Time Form */}
+                <form onSubmit={handleApplyCustomTime} className="space-y-1.5">
+                  <label className="text-xs font-black uppercase text-stone-500 block">
+                    ✍️ Hoặc Nhập Thời Gian Tự Chọn:
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="0"
+                      max="60"
+                      placeholder="0 Phút"
+                      value={customMin}
+                      onChange={(e) => setCustomMin(e.target.value)}
+                      className="w-1/2 p-2 bg-stone-50 border border-stone-300 rounded-xl text-xs font-bold text-center outline-none focus:border-[#FFC600]"
+                    />
+                    <span className="font-black text-base">:</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="59"
+                      placeholder="39 Giây"
+                      value={customSec}
+                      onChange={(e) => setCustomSec(e.target.value)}
+                      className="w-1/2 p-2 bg-stone-50 border border-stone-300 rounded-xl text-xs font-bold text-center outline-none focus:border-[#FFC600]"
+                    />
                     <button
-                      type="button"
-                      onClick={handleRemoveRacer}
-                      className="px-2.5 py-1 bg-rose-600 hover:bg-rose-500 text-white font-black text-xs rounded-lg transition flex items-center gap-1 shadow"
+                      type="submit"
+                      className="px-4 py-2 bg-[#FFC600] text-[#1F2421] font-black text-xs rounded-xl shadow-duo-yellow hover:brightness-105 transition flex-shrink-0"
                     >
-                      <Minus className="w-3.5 h-3.5" /> Bớt Mèo
+                      Áp Dụng
                     </button>
-                  )}
+                  </div>
+                </form>
+
+                {/* 3. Unlimited Lane Selection */}
+                <div className="pt-2 border-t border-stone-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-black uppercase text-stone-700">
+                      🐱 Số Lượng Mèo Đua: <span className="text-emerald-700 font-extrabold">{racers.length} Mèo</span>
+                    </label>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={handleAddRacer}
+                        className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-lg transition flex items-center gap-1 shadow"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> Thêm Mèo
+                      </button>
+                      {racers.length > 2 && (
+                        <button
+                          type="button"
+                          onClick={handleRemoveRacer}
+                          className="px-2.5 py-1 bg-rose-600 hover:bg-rose-500 text-white font-black text-xs rounded-lg transition flex items-center gap-1 shadow"
+                        >
+                          <Minus className="w-3.5 h-3.5" /> Bớt Mèo
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Quick count chips */}
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {[4, 8, 12, 16, 20, 24, 30].map((num) => (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => handleSetRacerCount(num)}
+                        className={`px-3 py-1.5 rounded-xl font-black text-xs border transition ${
+                          racers.length === num
+                            ? 'bg-[#1F2421] text-white border-black shadow'
+                            : 'bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100'
+                        }`}
+                      >
+                        {num} Mèo
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 4. Audio Settings */}
+                <div className="pt-2 border-t border-stone-200 space-y-2 text-xs">
+                  <label className="flex items-center justify-between p-2 rounded-xl hover:bg-stone-50 cursor-pointer">
+                    <span className="font-bold text-stone-700">Nhạc nền thi đấu sôi động & tiếng mèo kêu:</span>
+                    <input
+                      type="checkbox"
+                      checked={soundEnabled}
+                      onChange={(e) => setSoundEnabled(e.target.checked)}
+                      className="w-4 h-4 text-emerald-600 rounded"
+                    />
+                  </label>
+
+                  <label className="flex items-center justify-between p-2 rounded-xl hover:bg-stone-50 cursor-pointer">
+                    <span className="font-bold text-stone-700">Chuông báo hết giờ (Alarm Bell):</span>
+                    <input
+                      type="checkbox"
+                      checked={alarmBellEnabled}
+                      onChange={(e) => setAlarmBellEnabled(e.target.checked)}
+                      className="w-4 h-4 text-emerald-600 rounded"
+                    />
+                  </label>
+
+                  <label className="flex items-center justify-between p-2 rounded-xl hover:bg-stone-50 cursor-pointer">
+                    <span className="font-bold text-stone-700">Giọng đọc tiếng Việt xướng tên mèo thắng cuộc:</span>
+                    <input
+                      type="checkbox"
+                      checked={voiceAnnounceEnabled}
+                      onChange={(e) => setVoiceAnnounceEnabled(e.target.checked)}
+                      className="w-4 h-4 text-emerald-600 rounded"
+                    />
+                  </label>
                 </div>
               </div>
+            )}
 
-              {/* Quick count chips */}
-              <div className="flex flex-wrap gap-2 mb-3">
-                {[4, 8, 12, 16, 20, 24, 30].map((num) => (
+            {/* ================================================================ */}
+            {/* TAB 2: CAT RACER NAMES (Option Đặt Tên Cho Từng Chú Mèo)          */}
+            {/* ================================================================ */}
+            {settingsTab === 'names' && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between pb-2 border-b border-stone-200 flex-wrap gap-2">
+                  <div>
+                    <span className="text-xs font-black uppercase text-stone-700 block">
+                      🏷️ Đặt Tên Riêng Cho {racers.length} Tuyển Thủ Mèo:
+                    </span>
+                    <span className="text-[11px] text-stone-500 font-medium">
+                      Nhập tên học sinh hoặc biệt danh riêng cho từng con mèo bên dưới:
+                    </span>
+                  </div>
+
+                  <div className="flex gap-1.5">
+                    <button
+                      type="button"
+                      onClick={handleRandomizeFunnyNames}
+                      className="px-2.5 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:brightness-105 text-white font-black text-xs rounded-xl shadow transition flex items-center gap-1"
+                      title="Gán ngẫu nhiên các tên siêu hài hước cho cả đội mèo"
+                    >
+                      <Shuffle className="w-3.5 h-3.5" />
+                      <span>Tên Hài Hước 🎲</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleResetNumericNames}
+                      className="px-2.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl border border-stone-200 transition"
+                      title="Đặt lại Mèo Số 1, 2, 3..."
+                    >
+                      <span>Số 1-2-3</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Grid of Racers Name Inputs */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[360px] overflow-y-auto pr-1">
+                  {racers.map((racer) => (
+                    <div
+                      key={racer.id}
+                      className="flex items-center gap-2 p-2 rounded-xl bg-stone-50 border border-stone-200 hover:border-amber-400 transition"
+                    >
+                      {/* Avatar preview */}
+                      <div
+                        className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs text-white shadow-sm flex-shrink-0"
+                        style={{ backgroundColor: racer.furColor }}
+                      >
+                        #{racer.number}
+                      </div>
+
+                      {/* Name input */}
+                      <input
+                        type="text"
+                        value={racer.name}
+                        onChange={(e) => handleRenameRacer(racer.id, e.target.value)}
+                        placeholder={`Tên Mèo số ${racer.number}...`}
+                        className="flex-1 bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#1F2421] outline-none focus:border-[#FFC600]"
+                      />
+
+                      {/* Quick dice for single cat */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const randName = FUNNY_CAT_NAMES[Math.floor(Math.random() * FUNNY_CAT_NAMES.length)];
+                          handleRenameRacer(racer.id, `${randName} #${racer.number}`);
+                        }}
+                        className="p-1.5 hover:bg-stone-200 rounded-lg text-stone-400 hover:text-stone-700 transition"
+                        title="Đổi tên hài hước cho mèo này"
+                      >
+                        🎲
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-2 border-t border-stone-200 flex justify-end">
                   <button
-                    key={num}
                     type="button"
-                    onClick={() => handleSetRacerCount(num)}
-                    className={`px-3 py-1.5 rounded-xl font-black text-xs border transition ${
-                      racers.length === num
-                        ? 'bg-[#1F2421] text-white border-black shadow'
-                        : 'bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100'
-                    }`}
+                    onClick={() => setIsSettingsOpen(false)}
+                    className="px-5 py-2.5 bg-[#FFC600] text-[#1F2421] font-black text-xs rounded-xl shadow-duo-yellow hover:brightness-105 transition"
                   >
-                    {num} Mèo
+                    Xong & Bắt Đầu Đua!
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ================================================================ */}
+            {/* TAB 3: CLASS ROSTERS (V English House & Custom Saved Rosters)     */}
+            {/* ================================================================ */}
+            {settingsTab === 'classes' && (
+              <div className="space-y-4">
+                {/* 1. Official V English House Classes */}
+                <div>
+                  <label className="text-xs font-black uppercase text-stone-700 block mb-2">
+                    🏫 Chọn Nhanh Danh Sách Lớp V English House:
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {VHOUSE_CLASSES.map((cls) => (
+                      <button
+                        key={cls.id}
+                        type="button"
+                        onClick={() => handleLoadClassRoster(cls)}
+                        className="p-2.5 rounded-2xl bg-amber-50/60 hover:bg-amber-100 border border-amber-300 text-left transition flex items-center justify-between group shadow-sm"
+                      >
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-black text-xs text-amber-950">{cls.name}</span>
+                            <span className="text-[10px] bg-amber-200 text-amber-900 font-extrabold px-1.5 py-0.2 rounded-full">
+                              {cls.badge}
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-amber-800 font-medium block mt-0.5 line-clamp-1">
+                            {cls.students.slice(0, 4).join(', ')}... ({cls.students.length} học sinh)
+                          </span>
+                        </div>
+                        <ArrowRight className="w-4 h-4 text-amber-700 group-hover:translate-x-1 transition-transform flex-shrink-0" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 2. Custom Saved Classes (If any) */}
+                {customClasses.length > 0 && (
+                  <div className="pt-2 border-t border-stone-200">
+                    <label className="text-xs font-black uppercase text-stone-700 block mb-2">
+                      💾 Lớp Học Tự Tạo Của Bạn ({customClasses.length} lớp):
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {customClasses.map((cls) => (
+                        <div
+                          key={cls.id}
+                          className="p-2.5 rounded-2xl bg-sky-50 border border-sky-300 flex items-center justify-between shadow-sm"
+                        >
+                          <div
+                            onClick={() => handleLoadClassRoster(cls)}
+                            className="cursor-pointer flex-1"
+                          >
+                            <span className="font-black text-xs text-sky-950 block">{cls.name}</span>
+                            <span className="text-[10px] text-sky-700 font-medium block">
+                              {cls.students.length} học sinh • Nhấn để nạp
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCustomClass(cls.id)}
+                            className="p-1.5 text-rose-500 hover:bg-rose-100 rounded-lg transition"
+                            title="Xóa lớp này"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. Form to Create & Save New Custom Class */}
+                <form onSubmit={handleSaveCustomClass} className="pt-2 border-t border-stone-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-black uppercase text-stone-700">
+                      ✍️ Tạo & Lưu Danh Sách Lớp Mới:
+                    </label>
+                    <span className="text-[10px] text-stone-400 font-medium">Tự động lưu vào trình duyệt</span>
+                  </div>
+
+                  <input
+                    type="text"
+                    value={newClassName}
+                    onChange={(e) => setNewClassName(e.target.value)}
+                    placeholder="Nhập tên lớp (Ví dụ: Lớp 6A - Chiều Thứ 7, Lớp Cô Vi...)"
+                    className="w-full p-2 bg-stone-50 border border-stone-300 rounded-xl text-xs font-bold outline-none focus:border-[#FFC600]"
+                  />
+
+                  <textarea
+                    rows={3}
+                    value={newClassRoster}
+                    onChange={(e) => setNewClassRoster(e.target.value)}
+                    placeholder="Dán danh sách tên học sinh vào đây (mỗi dòng 1 tên)...&#10;Bảo An&#10;Gia Huy&#10;Minh Khôi"
+                    className="w-full p-2 bg-stone-50 border border-stone-300 rounded-xl text-xs font-mono outline-none focus:border-[#FFC600] resize-none"
+                  />
+
+                  <button
+                    type="submit"
+                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow transition flex items-center justify-center gap-1.5"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>Lưu Vào Danh Sách Lớp & Áp Dụng Ngay</span>
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* ================================================================ */}
+            {/* TAB 4: TROLL & SLAPSTICK CHAOS MODE                              */}
+            {/* ================================================================ */}
+            {settingsTab === 'troll' && (
+              <div className="space-y-4">
+                {/* Mode Master Toggle */}
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-rose-500/15 to-orange-500/15 border-2 border-amber-400/80 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-rose-500 text-white flex items-center justify-center text-xl shadow-md">
+                      💥
+                    </div>
+                    <div>
+                      <h4 className="font-black text-sm text-[#1F2421]">Chế Độ "Đua Đểu" Hài Hước</h4>
+                      <p className="text-xs text-stone-600 font-medium">
+                        Bật các pha va chạm, đá xoạc chân, té lăn quay và lật kèo ngoạn mục!
+                      </p>
+                    </div>
+                  </div>
+
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={trollModeEnabled}
+                      onChange={(e) => setTrollModeEnabled(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-stone-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500" />
+                  </label>
+                </div>
+
+                {/* Stunt Explanations */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  <div className="p-3 bg-stone-50 rounded-xl border border-stone-200 space-y-1">
+                    <div className="flex items-center gap-1.5 font-black text-rose-700">
+                      <span>😾💥</span>
+                      <span>Cú Đá Tình Bạn (Side-Kick)</span>
+                    </div>
+                    <p className="text-[11px] text-stone-600 font-medium">
+                      Hai chú mèo ở 2 lane kề nhau đang chạy ngang ngửa sẽ bất ngờ tung cước đá bay đối thủ lại phía sau để bứt tốc!
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-stone-50 rounded-xl border border-stone-200 space-y-1">
+                    <div className="flex items-center gap-1.5 font-black text-yellow-700">
+                      <span>🍌💫</span>
+                      <span>Té Lăn Quay (Banana Slip)</span>
+                    </div>
+                    <p className="text-[11px] text-stone-600 font-medium">
+                      Đang dẫn đầu thì trúng vỏ chuối, xoay mòng mòng 3 vòng chóng mặt 720°, sau đó cay cú bứt phá lại!
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-stone-50 rounded-xl border border-stone-200 space-y-1">
+                    <div className="flex items-center gap-1.5 font-black text-cyan-700">
+                      <span>🐟🚀</span>
+                      <span>Pate Siêu Tốc (Tuna Boost)</span>
+                    </div>
+                    <p className="text-[11px] text-stone-600 font-medium">
+                      Mèo xếp chót bất ngờ húp trọn hộp Pate cá hồi, đuôi phụt lửa tên lửa lao vun vút lên top dẫn đầu!
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-stone-50 rounded-xl border border-stone-200 space-y-1">
+                    <div className="flex items-center gap-1.5 font-black text-purple-700">
+                      <span>🦋🐾</span>
+                      <span>Bướm Đậu Mũi (Distraction)</span>
+                    </div>
+                    <p className="text-[11px] text-stone-600 font-medium">
+                      Đang chạy bỗng thấy con bướm bay ngang, đứng hình mất 1 giây ngơ ngác giơ chân bắt bướm!
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-2 text-xs text-amber-900 font-medium">
+                  <span className="text-base">📢</span>
+                  <span>
+                    Bình luận viên trực tiếp trên bảng tin sẽ xướng tên và cập nhật từng pha va chạm hài hước theo thời gian thực!
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ==================================================================== */}
+      {/* 4. QUICK INLINE RENAME MODAL (When teacher clicks ✏️ on cat name tag) */}
+      {/* ==================================================================== */}
+      {editingRacer && (
+        <div className="absolute inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl p-5 sm:p-6 max-w-sm w-full text-[#1F2421] shadow-2xl border-4 border-[#FFC600] space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-stone-200">
+              <div className="flex items-center gap-2">
+                <Edit3 className="w-5 h-5 text-[#A67C1E]" />
+                <h3 className="font-black text-sm">Đổi Tên Mèo Số {editingRacer.number}</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingRacer(null)}
+                className="p-1 hover:bg-stone-100 rounded-lg text-stone-400 hover:text-stone-700"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div>
+              <label className="text-[11px] font-black uppercase text-stone-500 block mb-1">
+                Nhập tên hiển thị:
+              </label>
+              <input
+                type="text"
+                value={editNameInput}
+                onChange={(e) => setEditNameInput(e.target.value)}
+                placeholder="Nhập tên học sinh hoặc biệt danh..."
+                className="w-full p-2.5 bg-stone-50 border border-stone-300 rounded-xl text-sm font-bold text-[#1F2421] outline-none focus:border-[#FFC600]"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleRenameRacer(editingRacer.id, editNameInput);
+                  }
+                }}
+              />
+            </div>
+
+            {/* Quick Suggestions */}
+            <div>
+              <span className="text-[10px] font-bold text-stone-400 block mb-1">Gợi ý tên vui nhộn:</span>
+              <div className="flex flex-wrap gap-1.5">
+                {['Mèo Béo Ú', 'Mèo Ngáo', 'Mèo Cục Súc', 'Chiến Thần Mèo', 'Mèo Đại Gia', 'Mèo Lười'].map((sug) => (
+                  <button
+                    key={sug}
+                    type="button"
+                    onClick={() => setEditNameInput(sug)}
+                    className="px-2 py-1 bg-stone-100 hover:bg-amber-100 text-[10px] font-bold text-stone-700 rounded-md border border-stone-200 transition"
+                  >
+                    {sug}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* 4. Import Student Roster (Dán danh sách học sinh) */}
-            <div className="pt-2 border-t border-stone-200 space-y-2">
-              <label className="text-xs font-black uppercase text-stone-700 block">
-                🎓 Dán Danh Sách Tên Học Sinh (Mỗi học sinh 1 con mèo):
-              </label>
-
-              {/* Sample Class Roster Quick Load Buttons */}
-              <div className="flex flex-wrap gap-2 text-xs">
-                <span className="text-[11px] font-bold text-stone-400 self-center">Mẫu lớp:</span>
-                <button
-                  type="button"
-                  onClick={() => handleImportRoster(SAMPLE_ROSTERS.kids.join('\n'))}
-                  className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-[11px] rounded-lg transition"
-                >
-                  🎒 Lớp Kids (10 bé)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleImportRoster(SAMPLE_ROSTERS.teens.join('\n'))}
-                  className="px-2.5 py-1 bg-sky-50 hover:bg-sky-100 text-sky-900 border border-sky-300 font-bold text-[11px] rounded-lg transition"
-                >
-                  🏫 Lớp Teens (16 em)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleImportRoster(SAMPLE_ROSTERS.large.join('\n'))}
-                  className="px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-300 font-bold text-[11px] rounded-lg transition"
-                >
-                  👥 Cả Lớp 24 Học Sinh
-                </button>
-              </div>
-
-              <textarea
-                rows={3}
-                placeholder="Dán danh sách tên học sinh vào đây (mỗi dòng 1 tên)...&#10;Ví dụ:&#10;Bảo An&#10;Gia Huy&#10;Minh Khôi"
-                value={rosterInput}
-                onChange={(e) => setRosterInput(e.target.value)}
-                className="w-full p-2.5 bg-stone-50 border border-stone-300 rounded-xl text-xs font-mono outline-none focus:border-[#FFC600] resize-none"
-              />
-
-              {rosterInput.trim().length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => handleImportRoster(rosterInput)}
-                  className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow transition flex items-center justify-center gap-1.5"
-                >
-                  <ArrowRight className="w-4 h-4" />
-                  <span>Áp Dụng Danh Sách ({rosterInput.split('\n').filter((l) => l.trim()).length} Học Sinh)</span>
-                </button>
-              )}
-            </div>
-
-            {/* 5. Audio Settings */}
-            <div className="pt-2 border-t border-stone-200 space-y-2 text-xs">
-              <label className="flex items-center justify-between p-2 rounded-xl hover:bg-stone-50 cursor-pointer">
-                <span className="font-bold text-stone-700">Nhạc nền thi đấu sôi động & tiếng mèo kêu:</span>
-                <input
-                  type="checkbox"
-                  checked={soundEnabled}
-                  onChange={(e) => setSoundEnabled(e.target.checked)}
-                  className="w-4 h-4 text-emerald-600 rounded"
-                />
-              </label>
-
-              <label className="flex items-center justify-between p-2 rounded-xl hover:bg-stone-50 cursor-pointer">
-                <span className="font-bold text-stone-700">Chuông báo hết giờ (Alarm Bell):</span>
-                <input
-                  type="checkbox"
-                  checked={alarmBellEnabled}
-                  onChange={(e) => setAlarmBellEnabled(e.target.checked)}
-                  className="w-4 h-4 text-emerald-600 rounded"
-                />
-              </label>
-
-              <label className="flex items-center justify-between p-2 rounded-xl hover:bg-stone-50 cursor-pointer">
-                <span className="font-bold text-stone-700">Giọng đọc tiếng Việt xướng tên mèo thắng cuộc:</span>
-                <input
-                  type="checkbox"
-                  checked={voiceAnnounceEnabled}
-                  onChange={(e) => setVoiceAnnounceEnabled(e.target.checked)}
-                  className="w-4 h-4 text-emerald-600 rounded"
-                />
-              </label>
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setEditingRacer(null)}
+                className="flex-1 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl transition"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRenameRacer(editingRacer.id, editNameInput)}
+                className="flex-1 py-2.5 bg-[#FFC600] hover:bg-[#E6B200] text-[#1F2421] font-black text-xs rounded-xl shadow-duo-yellow transition"
+              >
+                Lưu Tên
+              </button>
             </div>
           </div>
         </div>
