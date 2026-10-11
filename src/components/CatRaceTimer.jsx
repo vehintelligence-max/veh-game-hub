@@ -131,45 +131,44 @@ const PRESET_TIMES = [
 ];
 
 // ============================================================================
-// SVG SWIMMING CAT (DUCK RACE STYLE)
+// SVG RUNNING & SWIMMING CAT (DUCK RACE STYLE - ACTIVE 4-PAW PADDLE & BODY GALLOP)
 // ============================================================================
 function SwimmingCat({ racer, isRunning, isWinner, isLeader }) {
   return (
     <div className="relative flex items-center justify-center select-none cursor-pointer group">
-      {/* Dynamic Water Ripples Under Belly */}
+      {/* 1. Dynamic Water Ripples Under Belly */}
       <svg
         viewBox="0 0 110 30"
         className={`absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-28 h-7 pointer-events-none ${
-          isRunning ? 'animate-pulse' : 'opacity-70'
+          isRunning ? 'animate-[wakePulse_0.4s_ease-out_infinite]' : 'opacity-70'
         }`}
       >
         <ellipse cx="55" cy="15" rx="46" ry="7" fill="none" stroke="#BAE6FD" strokeWidth="2.5" opacity="0.8" />
         <ellipse cx="55" cy="15" rx="36" ry="5" fill="none" stroke="#7DD3FC" strokeWidth="1.8" opacity="0.6" />
       </svg>
 
-      {/* Splashing Droplets behind paddler when running */}
+      {/* 2. Water Splashes & Spray shooting backwards from paddling paws */}
       {isRunning && (
-        <div className="absolute -left-4 bottom-2 flex gap-1 pointer-events-none animate-bounce">
-          <span className="text-xs">💦</span>
+        <div className="absolute -left-6 bottom-2 flex gap-1 pointer-events-none select-none">
+          <span className="text-sm inline-block animate-[waterSpray_0.35s_ease-out_infinite]">💦</span>
+          <span className="text-xs inline-block animate-[waterSpray_0.42s_ease-out_infinite_0.1s]">💧</span>
+          <span className="text-sm inline-block animate-[waterSpray_0.32s_ease-out_infinite_0.18s]">💦</span>
         </div>
       )}
 
-      {/* Crown / Sparkle if leading */}
+      {/* 3. Crown / Star if leading */}
       {isLeader && isRunning && (
         <div className="absolute -top-3.5 right-6 z-20 animate-bounce text-xs font-black drop-shadow">
           ⭐
         </div>
       )}
 
-      {/* The Swimming Cat SVG */}
+      {/* 4. The Swimming & Running Cat SVG */}
       <svg
-        viewBox="0 0 115 80"
+        viewBox="0 0 120 85"
         className={`w-24 h-16 sm:w-28 sm:h-20 drop-shadow-lg transition-transform ${
-          isRunning ? 'animate-bounce' : ''
-        } ${isWinner ? 'scale-110 drop-shadow-2xl' : ''}`}
-        style={{
-          animationDuration: isRunning ? '0.45s' : '0s'
-        }}
+          isWinner ? 'scale-115 drop-shadow-2xl' : ''
+        }`}
       >
         <defs>
           <linearGradient id={`furGrad_${racer.id}`} x1="0" y1="0" x2="0" y2="1">
@@ -178,169 +177,203 @@ function SwimmingCat({ racer, isRunning, isWinner, isLeader }) {
           </linearGradient>
         </defs>
 
-        {/* 1. Tail (Wagging in water behind) */}
-        <path
-          d="M 22 45 Q 8 36, 12 24 Q 18 36, 26 42 Z"
-          fill={`url(#furGrad_${racer.id})`}
-          stroke="#1F2421"
-          strokeWidth="2"
-        />
-
-        {/* 2. Chubby Swimming Cat Body floating in water */}
-        <ellipse cx="56" cy="48" rx="34" ry="22" fill={`url(#furGrad_${racer.id})`} stroke="#1F2421" strokeWidth="2.8" />
-
-        {/* 3. Cat Belly accent */}
-        <ellipse cx="58" cy="53" rx="22" ry="13" fill={racer.accentColor} />
-
-        {/* 4. Tabby Stripes */}
-        <path d="M 44 32 Q 47 40, 44 46" stroke={racer.stripeColor} strokeWidth="2.8" strokeLinecap="round" fill="none" />
-        <path d="M 54 30 Q 57 40, 54 48" stroke={racer.stripeColor} strokeWidth="2.8" strokeLinecap="round" fill="none" />
-        <path d="M 64 32 Q 67 40, 64 46" stroke={racer.stripeColor} strokeWidth="2.8" strokeLinecap="round" fill="none" />
-
-        {/* 5. Cat Head */}
-        <circle cx="82" cy="34" r="21" fill={`url(#furGrad_${racer.id})`} stroke="#1F2421" strokeWidth="2.8" />
-
-        {/* 6. Cat Ears */}
-        {/* Left Ear */}
-        <polygon points="69,21 75,6 83,18" fill={racer.furColor} stroke="#1F2421" strokeWidth="2.5" strokeLinejoin="round" />
-        <polygon points="72,19 76,9 81,17" fill="#FCA5A5" />
-        {/* Right Ear */}
-        <polygon points="84,18 92,6 98,21" fill={racer.furColor} stroke="#1F2421" strokeWidth="2.5" strokeLinejoin="round" />
-        <polygon points="86,17 91,9 95,19" fill="#FCA5A5" />
-
-        {/* 7. Accessories matching Duck Race screenshot */}
-        {/* ACCESSORY 1: BANDANA (Matching Duck 1 in screenshot!) */}
-        {racer.accessory === 'bandana' && (
-          <g>
-            {/* Bandana ribbon strap across forehead */}
-            <path
-              d="M 68,26 Q 82,23 96,27"
-              stroke="#EF4444"
-              strokeWidth="6.5"
-              strokeLinecap="round"
-              fill="none"
-            />
-            {/* White polka dots on bandana */}
-            <circle cx="73" cy="25" r="1.3" fill="#FFFFFF" />
-            <circle cx="82" cy="24" r="1.3" fill="#FFFFFF" />
-            <circle cx="91" cy="26" r="1.3" fill="#FFFFFF" />
-            {/* Bandana knot fluttering behind ear */}
-            <path d="M 67 26 Q 60 20 54 26 Q 61 28 67 26" fill="#EF4444" stroke="#1F2421" strokeWidth="1.5" />
-            <path d="M 66 28 Q 58 32 52 38 Q 60 34 66 28" fill="#EF4444" stroke="#1F2421" strokeWidth="1.5" />
-          </g>
-        )}
-
-        {/* ACCESSORY 3: GREEN ANTENNAE (Matching Duck 3 in screenshot!) */}
-        {racer.accessory === 'antennae' && (
-          <g>
-            <path d="M 77 15 Q 73 5 67 4" stroke="#16A34A" strokeWidth="3" fill="none" strokeLinecap="round" />
-            <circle cx="67" cy="4" r="3.5" fill="#22C55E" stroke="#1F2421" strokeWidth="1.8" />
-            <path d="M 87 15 Q 91 5 97 4" stroke="#16A34A" strokeWidth="3" fill="none" strokeLinecap="round" />
-            <circle cx="97" cy="4" r="3.5" fill="#22C55E" stroke="#1F2421" strokeWidth="1.8" />
-          </g>
-        )}
-
-        {/* ACCESSORY 4: SUNGLASSES (Matching Duck 4) */}
-        {racer.accessory === 'sunglasses' && (
-          <g>
-            <path d="M 75 30 Q 83 28 92 31" stroke="#111827" strokeWidth="2.5" fill="none" />
-            <rect x="76" y="28" width="10" height="9" rx="3" fill="#111827" stroke="#374151" strokeWidth="1" />
-            <rect x="88" y="29" width="10" height="9" rx="3" fill="#111827" stroke="#374151" strokeWidth="1" />
-            {/* Lens shine */}
-            <line x1="78" y1="30" x2="83" y2="35" stroke="#9CA3AF" strokeWidth="1.2" strokeLinecap="round" />
-            <line x1="90" y1="31" x2="95" y2="36" stroke="#9CA3AF" strokeWidth="1.2" strokeLinecap="round" />
-          </g>
-        )}
-
-        {/* ACCESSORY 5: SNORKEL GOGGLES */}
-        {racer.accessory === 'snorkel' && (
-          <g>
-            <rect x="76" y="27" width="22" height="11" rx="4" fill="#0284C7" stroke="#1F2421" strokeWidth="1.8" />
-            <rect x="78" y="29" width="18" height="7" rx="2" fill="#BAE6FD" opacity="0.8" />
-            <path d="M 98 33 Q 105 33 105 18 L 105 12" stroke="#F97316" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-            <circle cx="105" cy="11" r="2.5" fill="#EF4444" />
-          </g>
-        )}
-
-        {/* ACCESSORY 6: PINK BOW */}
-        {racer.accessory === 'bow' && (
-          <g>
-            <polygon points="76,14 84,20 76,26" fill="#EC4899" stroke="#1F2421" strokeWidth="1.5" />
-            <polygon points="92,14 84,20 92,26" fill="#EC4899" stroke="#1F2421" strokeWidth="1.5" />
-            <circle cx="84" cy="20" r="3" fill="#F43F5E" />
-          </g>
-        )}
-
-        {/* ACCESSORY 7: GOLDEN CROWN */}
-        {racer.accessory === 'crown' && (
-          <polygon points="78,14 81,6 85,12 89,6 92,14" fill="#FFC600" stroke="#1F2421" strokeWidth="1.8" strokeLinejoin="round" />
-        )}
-
-        {/* ACCESSORY 8: FIGHTER HEADBAND */}
-        {racer.accessory === 'headband' && (
-          <path d="M 68,27 Q 82,24 96,28" stroke="#991B1B" strokeWidth="5.5" strokeLinecap="round" fill="none" />
-        )}
-
-        {/* 8. Cat Face: Big Cartoon Anime Eyes */}
-        {racer.accessory !== 'sunglasses' && racer.accessory !== 'snorkel' && (
-          <g>
-            {/* Big Expressive Eye */}
-            <ellipse cx="88" cy="31" rx="4" ry="5.5" fill="#1F2421" />
-            <circle cx="89.5" cy="29" r="1.8" fill="#FFFFFF" />
-            <circle cx="87" cy="34" r="0.9" fill="#FFFFFF" />
-
-            {/* Nose & Cute Cat Mouth :3 */}
-            <polygon points="95,36 97,38.5 99,36" fill="#F43F5E" />
-            <path d="M 93 39 Q 95 42 97 39.5 Q 99 42 101 39" stroke="#1F2421" strokeWidth="1.8" strokeLinecap="round" fill="none" />
-
-            {/* Whiskers */}
-            <line x1="94" y1="38" x2="106" y2="36" stroke="#1F2421" strokeWidth="1.5" strokeLinecap="round" />
-            <line x1="94" y1="41" x2="106" y2="42" stroke="#1F2421" strokeWidth="1.5" strokeLinecap="round" />
-          </g>
-        )}
-
-        {/* 9. Paddling Front Paw dipping into water */}
-        <g style={{ transformOrigin: '78px 58px', animation: isRunning ? 'pawPaddle 0.4s ease-in-out infinite alternate' : 'none' }}>
-          <ellipse cx="78" cy="58" rx="8" ry="5" fill={racer.furColor} stroke="#1F2421" strokeWidth="2.2" />
-          <circle cx="82" cy="59" r="1.5" fill="#FCA5A5" />
-          <circle cx="78" cy="60" r="1.5" fill="#FCA5A5" />
-        </g>
-
-        {/* 10. ICONIC DUCK-RACE STYLE WHITE NUMBER BADGE ON BODY */}
-        <g>
-          {/* White Shield Badge with Dark Outline */}
-          <rect
-            x="38"
-            y="35"
-            width="26"
-            height="24"
-            rx="8"
-            fill="#FFFFFF"
-            stroke="#1F2421"
-            strokeWidth="3.2"
-          />
-          {/* Black Bold Number matching Screenshot */}
-          <text
-            x="51"
-            y="52"
-            textAnchor="middle"
-            fontSize="18"
-            fontWeight="900"
-            fill="#1F2421"
-            fontFamily="Arial Black, Impact, Montserrat, sans-serif"
+        {/* Dynamic Galloping & Swimming Body Group */}
+        <g
+          style={{
+            transformOrigin: '56px 48px',
+            animation: isRunning ? 'catGallop 0.32s ease-in-out infinite' : 'none'
+          }}
+        >
+          {/* A. Tail Wagging / Rudder swishing vigorously in water */}
+          <g
+            style={{
+              transformOrigin: '24px 44px',
+              animation: isRunning ? 'catTailSwim 0.26s ease-in-out infinite' : 'catTail 1.5s ease-in-out infinite'
+            }}
           >
-            {racer.number}
-          </text>
-        </g>
+            <path
+              d="M 24 44 Q 8 32, 10 18 Q 18 32, 26 42 Z"
+              fill={`url(#furGrad_${racer.id})`}
+              stroke="#1F2421"
+              strokeWidth="2.5"
+            />
+          </g>
 
-        {/* 11. Water line covering bottom */}
-        <path
-          d="M 16 62 Q 35 57 55 62 Q 75 67 95 62 Q 105 60 112 62"
-          stroke="#38BDF8"
-          strokeWidth="3.5"
-          fill="none"
-          strokeLinecap="round"
-        />
+          {/* B. BACK LEFT PAW (Chân sau trái - Kicking water backward, lower layer) */}
+          <g
+            style={{
+              transformOrigin: '32px 48px',
+              animation: isRunning ? 'catPawKickBack2 0.32s ease-in-out infinite' : 'none'
+            }}
+          >
+            <ellipse cx="28" cy="54" rx="8" ry="5" fill={racer.furColor} stroke="#1F2421" strokeWidth="2" opacity="0.85" />
+            <circle cx="31" cy="55" r="1.3" fill="#FCA5A5" />
+            <circle cx="27" cy="56" r="1.3" fill="#FCA5A5" />
+          </g>
+
+          {/* C. Chubby Swimming Cat Body floating in water */}
+          <ellipse cx="56" cy="48" rx="34" ry="22" fill={`url(#furGrad_${racer.id})`} stroke="#1F2421" strokeWidth="2.8" />
+
+          {/* D. Cat Belly accent */}
+          <ellipse cx="58" cy="53" rx="22" ry="13" fill={racer.accentColor} />
+
+          {/* E. Tabby Stripes */}
+          <path d="M 44 32 Q 47 40, 44 46" stroke={racer.stripeColor} strokeWidth="2.8" strokeLinecap="round" fill="none" />
+          <path d="M 54 30 Q 57 40, 54 48" stroke={racer.stripeColor} strokeWidth="2.8" strokeLinecap="round" fill="none" />
+          <path d="M 64 32 Q 67 40, 64 46" stroke={racer.stripeColor} strokeWidth="2.8" strokeLinecap="round" fill="none" />
+
+          {/* F. BACK RIGHT PAW (Chân sau phải - Kicking water backward, upper layer) */}
+          <g
+            style={{
+              transformOrigin: '42px 50px',
+              animation: isRunning ? 'catPawKickBack1 0.32s ease-in-out infinite' : 'none'
+            }}
+          >
+            <ellipse cx="38" cy="58" rx="8.5" ry="5.5" fill={racer.furColor} stroke="#1F2421" strokeWidth="2.2" />
+            <circle cx="41" cy="59" r="1.5" fill="#FCA5A5" />
+            <circle cx="37" cy="60" r="1.5" fill="#FCA5A5" />
+            <circle cx="33" cy="59" r="1.5" fill="#FCA5A5" />
+          </g>
+
+          {/* G. Cat Head */}
+          <circle cx="82" cy="34" r="21" fill={`url(#furGrad_${racer.id})`} stroke="#1F2421" strokeWidth="2.8" />
+
+          {/* H. Cat Ears */}
+          {/* Left Ear */}
+          <polygon points="69,21 75,6 83,18" fill={racer.furColor} stroke="#1F2421" strokeWidth="2.5" strokeLinejoin="round" />
+          <polygon points="72,19 76,9 81,17" fill="#FCA5A5" />
+          {/* Right Ear */}
+          <polygon points="84,18 92,6 98,21" fill={racer.furColor} stroke="#1F2421" strokeWidth="2.5" strokeLinejoin="round" />
+          <polygon points="86,17 91,9 95,19" fill="#FCA5A5" />
+
+          {/* I. Accessories matching Duck Race screenshot */}
+          {racer.accessory === 'bandana' && (
+            <g>
+              <path d="M 68,26 Q 82,23 96,27" stroke="#EF4444" strokeWidth="6.5" strokeLinecap="round" fill="none" />
+              <circle cx="73" cy="25" r="1.3" fill="#FFFFFF" />
+              <circle cx="82" cy="24" r="1.3" fill="#FFFFFF" />
+              <circle cx="91" cy="26" r="1.3" fill="#FFFFFF" />
+              <path d="M 67 26 Q 60 20 54 26 Q 61 28 67 26" fill="#EF4444" stroke="#1F2421" strokeWidth="1.5" />
+              <path d="M 66 28 Q 58 32 52 38 Q 60 34 66 28" fill="#EF4444" stroke="#1F2421" strokeWidth="1.5" />
+            </g>
+          )}
+
+          {racer.accessory === 'antennae' && (
+            <g>
+              <path d="M 77 15 Q 73 5 67 4" stroke="#16A34A" strokeWidth="3" fill="none" strokeLinecap="round" />
+              <circle cx="67" cy="4" r="3.5" fill="#22C55E" stroke="#1F2421" strokeWidth="1.8" />
+              <path d="M 87 15 Q 91 5 97 4" stroke="#16A34A" strokeWidth="3" fill="none" strokeLinecap="round" />
+              <circle cx="97" cy="4" r="3.5" fill="#22C55E" stroke="#1F2421" strokeWidth="1.8" />
+            </g>
+          )}
+
+          {racer.accessory === 'sunglasses' && (
+            <g>
+              <path d="M 75 30 Q 83 28 92 31" stroke="#111827" strokeWidth="2.5" fill="none" />
+              <rect x="76" y="28" width="10" height="9" rx="3" fill="#111827" stroke="#374151" strokeWidth="1" />
+              <rect x="88" y="29" width="10" height="9" rx="3" fill="#111827" stroke="#374151" strokeWidth="1" />
+              <line x1="78" y1="30" x2="83" y2="35" stroke="#9CA3AF" strokeWidth="1.2" strokeLinecap="round" />
+              <line x1="90" y1="31" x2="95" y2="36" stroke="#9CA3AF" strokeWidth="1.2" strokeLinecap="round" />
+            </g>
+          )}
+
+          {racer.accessory === 'snorkel' && (
+            <g>
+              <rect x="76" y="27" width="22" height="11" rx="4" fill="#0284C7" stroke="#1F2421" strokeWidth="1.8" />
+              <rect x="78" y="29" width="18" height="7" rx="2" fill="#BAE6FD" opacity="0.8" />
+              <path d="M 98 33 Q 105 33 105 18 L 105 12" stroke="#F97316" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+              <circle cx="105" cy="11" r="2.5" fill="#EF4444" />
+            </g>
+          )}
+
+          {racer.accessory === 'bow' && (
+            <g>
+              <polygon points="76,14 84,20 76,26" fill="#EC4899" stroke="#1F2421" strokeWidth="1.5" />
+              <polygon points="92,14 84,20 92,26" fill="#EC4899" stroke="#1F2421" strokeWidth="1.5" />
+              <circle cx="84" cy="20" r="3" fill="#F43F5E" />
+            </g>
+          )}
+
+          {racer.accessory === 'crown' && (
+            <polygon points="78,14 81,6 85,12 89,6 92,14" fill="#FFC600" stroke="#1F2421" strokeWidth="1.8" strokeLinejoin="round" />
+          )}
+
+          {racer.accessory === 'headband' && (
+            <path d="M 68,27 Q 82,24 96,28" stroke="#991B1B" strokeWidth="5.5" strokeLinecap="round" fill="none" />
+          )}
+
+          {/* J. Cat Face */}
+          {racer.accessory !== 'sunglasses' && racer.accessory !== 'snorkel' && (
+            <g>
+              <ellipse cx="88" cy="31" rx="4" ry="5.5" fill="#1F2421" />
+              <circle cx="89.5" cy="29" r="1.8" fill="#FFFFFF" />
+              <circle cx="87" cy="34" r="0.9" fill="#FFFFFF" />
+              <polygon points="95,36 97,38.5 99,36" fill="#F43F5E" />
+              <path d="M 93 39 Q 95 42 97 39.5 Q 99 42 101 39" stroke="#1F2421" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+              <line x1="94" y1="38" x2="106" y2="36" stroke="#1F2421" strokeWidth="1.5" strokeLinecap="round" />
+              <line x1="94" y1="41" x2="106" y2="42" stroke="#1F2421" strokeWidth="1.5" strokeLinecap="round" />
+            </g>
+          )}
+
+          {/* K. FRONT LEFT PAW (Chân trước trái - Paddling forward, lower layer) */}
+          <g
+            style={{
+              transformOrigin: '76px 50px',
+              animation: isRunning ? 'catPawPaddleFront2 0.32s ease-in-out infinite' : 'none'
+            }}
+          >
+            <ellipse cx="76" cy="54" rx="7.5" ry="5" fill={racer.furColor} stroke="#1F2421" strokeWidth="2" opacity="0.9" />
+            <circle cx="79" cy="55" r="1.3" fill="#FCA5A5" />
+            <circle cx="75" cy="56" r="1.3" fill="#FCA5A5" />
+          </g>
+
+          {/* L. FRONT RIGHT PAW (Chân trước phải - Paddling forward, dipping in water) */}
+          <g
+            style={{
+              transformOrigin: '88px 52px',
+              animation: isRunning ? 'catPawPaddleFront1 0.32s ease-in-out infinite' : 'none'
+            }}
+          >
+            <ellipse cx="88" cy="56" rx="8" ry="5.5" fill={racer.furColor} stroke="#1F2421" strokeWidth="2.2" />
+            <circle cx="92" cy="57" r="1.5" fill="#FCA5A5" />
+            <circle cx="88" cy="58" r="1.5" fill="#FCA5A5" />
+            <circle cx="84" cy="57" r="1.5" fill="#FCA5A5" />
+          </g>
+
+          {/* M. ICONIC DUCK-RACE STYLE WHITE NUMBER BADGE ON BODY */}
+          <g>
+            <rect
+              x="38"
+              y="35"
+              width="26"
+              height="24"
+              rx="8"
+              fill="#FFFFFF"
+              stroke="#1F2421"
+              strokeWidth="3.2"
+            />
+            <text
+              x="51"
+              y="52"
+              textAnchor="middle"
+              fontSize="18"
+              fontWeight="900"
+              fill="#1F2421"
+              fontFamily="Arial Black, Impact, Montserrat, sans-serif"
+            >
+              {racer.number}
+            </text>
+          </g>
+
+          {/* N. Water line covering bottom */}
+          <path
+            d="M 16 62 Q 35 57 55 62 Q 75 67 95 62 Q 105 60 112 62"
+            stroke="#38BDF8"
+            strokeWidth="3.5"
+            fill="none"
+            strokeLinecap="round"
+          />
+        </g>
       </svg>
     </div>
   );
@@ -377,9 +410,11 @@ export default function CatRaceTimer() {
   const [customSec, setCustomSec] = useState('39');
 
   const containerRef = useRef(null);
-  const timerIntervalRef = useRef(null);
-  const physicsIntervalRef = useRef(null);
-  const driftSpeedRef = useRef({});
+  const raceStartTimeRef = useRef(null);
+  const elapsedOffsetRef = useRef(0); // In seconds, tracks elapsed time through pause/resume
+  const animFrameRef = useRef(null);
+  const lastSecondTickedRef = useRef(null);
+  const racerPersonalitiesRef = useRef({});
 
   // Sync racers when lane count changes
   useEffect(() => {
@@ -401,24 +436,35 @@ export default function CatRaceTimer() {
 
   // Reset Race & Positions
   const handleResetRace = (newTotal = totalSeconds, currentRacers = racers) => {
-    clearInterval(timerIntervalRef.current);
-    clearInterval(physicsIntervalRef.current);
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current);
+    }
     setIsRunning(false);
     setIsFinished(false);
     setWinner(null);
     setRankings([]);
     setTotalSeconds(newTotal);
     setRemainingSeconds(newTotal);
+    elapsedOffsetRef.current = 0;
+    raceStartTimeRef.current = null;
+    lastSecondTickedRef.current = newTotal;
 
-    // Initial positions at starting docks (0%)
+    // Generate distinct racer personalities for fluid overtakes & sprints
     const initPos = {};
-    const initDrift = {};
-    currentRacers.forEach((r) => {
+    const pers = {};
+    currentRacers.forEach((r, idx) => {
       initPos[r.id] = 0;
-      initDrift[r.id] = 0;
+      pers[r.id] = {
+        freq1: 0.9 + ((idx * 0.45) % 1.1),
+        freq2: 1.8 + ((idx * 0.6) % 1.4),
+        phase1: idx * 1.6 + Math.random(),
+        phase2: idx * 2.2 + 0.9,
+        amplitude: 4.8 + (idx % 3) * 1.4, // Amplitude of passing waves (% of track)
+        sprintPower: 5 + Math.random() * 5.5, // Sprint boost in final stretch
+      };
     });
+    racerPersonalitiesRef.current = pers;
     setPositions(initPos);
-    driftSpeedRef.current = initDrift;
     setLeaderId(null);
   };
 
@@ -430,109 +476,125 @@ export default function CatRaceTimer() {
     }
 
     if (isRunning) {
-      // Pause
+      // PAUSE
       sound.playClick();
       setIsRunning(false);
-      clearInterval(timerIntervalRef.current);
-      clearInterval(physicsIntervalRef.current);
+      if (animFrameRef.current) {
+        cancelAnimationFrame(animFrameRef.current);
+      }
+      if (raceStartTimeRef.current) {
+        const now = performance.now();
+        elapsedOffsetRef.current = Math.min(totalSeconds, (now - raceStartTimeRef.current) / 1000);
+      }
     } else {
-      // Start / Resume
+      // START / RESUME
       if (soundEnabled) {
         sound.playWhistle();
       }
+      raceStartTimeRef.current = performance.now() - (elapsedOffsetRef.current * 1000);
       setIsRunning(true);
     }
   };
 
-  // Timer Tick & Race Physics Loop
+  // Smooth 60fps Animation & Physics Loop (Silky fluid movement, no jerky jumps)
   useEffect(() => {
-    if (!isRunning) return;
+    if (!isRunning) {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      return;
+    }
 
-    // 1. Second Countdown Timer
-    timerIntervalRef.current = setInterval(() => {
-      setRemainingSeconds((prev) => {
-        if (prev <= 1) {
-          clearInterval(timerIntervalRef.current);
-          handleFinishRace();
-          return 0;
-        }
+    let isSubscribed = true;
 
-        // Ticking audio
-        if (soundEnabled) {
-          if (prev <= 5) {
+    const tick = () => {
+      if (!isSubscribed) return;
+
+      const now = performance.now();
+      const elapsedSec = (now - raceStartTimeRef.current) / 1000;
+      elapsedOffsetRef.current = elapsedSec;
+
+      const progress = Math.min(1, Math.max(0, elapsedSec / totalSeconds));
+      const remainingSec = Math.max(0, Math.ceil(totalSeconds - elapsedSec));
+
+      // Audio tick once per whole second
+      if (remainingSec !== lastSecondTickedRef.current) {
+        lastSecondTickedRef.current = remainingSec;
+        setRemainingSeconds(remainingSec);
+        if (soundEnabled && remainingSec > 0) {
+          if (remainingSec <= 5) {
             sound.playUrgentTick();
           } else {
             sound.playSplash();
           }
         }
+      }
 
-        return prev - 1;
+      // Smooth continuous position updates for all racers
+      const nextPos = {};
+      let maxP = -1;
+      let leadId = null;
+
+      racers.forEach((r) => {
+        const pers = racerPersonalitiesRef.current[r.id] || {
+          freq1: 1, freq2: 2, phase1: 0, phase2: 0, amplitude: 5, sprintPower: 5
+        };
+
+        // Continuous sinusoidal wave surges creating dramatic overtakes
+        const wave1 = Math.sin(elapsedSec * pers.freq1 + pers.phase1);
+        const wave2 = Math.sin(elapsedSec * pers.freq2 + pers.phase2);
+        const surge = (wave1 * 0.65 + wave2 * 0.35) * pers.amplitude;
+
+        // Final sprint amplification in the last 15% of the countdown
+        let sprint = 0;
+        if (progress > 0.85) {
+          const sprintRatio = (progress - 0.85) / 0.15;
+          sprint = pers.sprintPower * sprintRatio;
+        }
+
+        let p = progress * 100 + surge + sprint;
+        if (progress >= 0.99) {
+          p = Math.max(98, p);
+        }
+        p = Math.max(0, Math.min(104, p));
+
+        nextPos[r.id] = p;
+
+        if (p > maxP) {
+          maxP = p;
+          leadId = r.id;
+        }
       });
-    }, 1000);
 
-    // 2. High-speed smooth physics loop (Updates cat positions & rubberbanding surges)
-    physicsIntervalRef.current = setInterval(() => {
-      setRemainingSeconds((curSec) => {
-        const progress = Math.max(0, Math.min(1, 1 - (curSec / totalSeconds)));
+      setPositions(nextPos);
+      setLeaderId(leadId);
 
-        setPositions((prevPositions) => {
-          const next = { ...prevPositions };
+      // Finish check when countdown reaches 0 / progress reaches 100%
+      if (progress >= 1.0) {
+        handleFinishRace(nextPos);
+        return;
+      }
 
-          // Every frame, apply dynamic surges & drift
-          racers.forEach((r) => {
-            // Random surge changes periodically
-            if (Math.random() < 0.15) {
-              driftSpeedRef.current[r.id] = (Math.random() - 0.48) * 8.5; // slight speed variation
-            }
+      animFrameRef.current = requestAnimationFrame(tick);
+    };
 
-            const drift = driftSpeedRef.current[r.id] || 0;
-            // Base position tied to time progress + individual cat drift
-            let target = progress * 100 + drift;
-
-            // Clamp so cats stay on screen and cross finish at 100%
-            if (progress >= 0.98) {
-              target = Math.max(target, 96 + Math.random() * 6);
-            }
-            target = Math.max(0, Math.min(102, target));
-
-            next[r.id] = target;
-          });
-
-          // Determine current leader
-          let maxPos = -1;
-          let currentLead = null;
-          Object.entries(next).forEach(([id, pos]) => {
-            if (pos > maxPos) {
-              maxPos = pos;
-              currentLead = id;
-            }
-          });
-          setLeaderId(currentLead);
-
-          return next;
-        });
-
-        return curSec;
-      });
-    }, 120);
+    animFrameRef.current = requestAnimationFrame(tick);
 
     return () => {
-      clearInterval(timerIntervalRef.current);
-      clearInterval(physicsIntervalRef.current);
+      isSubscribed = false;
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
   }, [isRunning, totalSeconds, racers, soundEnabled]);
 
   // Race Finish Ceremony
-  const handleFinishRace = () => {
-    clearInterval(timerIntervalRef.current);
-    clearInterval(physicsIntervalRef.current);
+  const handleFinishRace = (finalSnapshotPositions = positions) => {
+    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     setIsRunning(false);
     setIsFinished(true);
+    setRemainingSeconds(0);
 
-    // Sort final rankings
+    // Sort final rankings from finish line positions
     const sorted = [...racers].sort((a, b) => {
-      const posA = (positions[a.id] || 0) + (driftSpeedRef.current[a.id] || 0);
-      const posB = (positions[b.id] || 0) + (driftSpeedRef.current[b.id] || 0);
+      const posA = finalSnapshotPositions[a.id] || 0;
+      const posB = finalSnapshotPositions[b.id] || 0;
       return posB - posA;
     });
 
@@ -543,7 +605,7 @@ export default function CatRaceTimer() {
     // Push all positions across finish line
     const finalPos = {};
     sorted.forEach((r, idx) => {
-      finalPos[r.id] = 100 - idx * 4;
+      finalPos[r.id] = 100 - idx * 3.5;
     });
     setPositions(finalPos);
 
@@ -726,18 +788,64 @@ export default function CatRaceTimer() {
       {/* 2. THE BLUE RIVER RACETRACK (Exact Duck Race wavy river & lanes)      */}
       {/* ==================================================================== */}
       <div className="relative flex-1 bg-[#2C82BC] overflow-hidden flex flex-col justify-around py-3 sm:py-5 min-h-[440px]">
-        {/* Animated Horizontal Water Waves across the river */}
-        <div className="absolute inset-0 opacity-40 pointer-events-none flex flex-col justify-around">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={i}
-              className="w-full h-8 border-b-2 border-[#80C9F7] opacity-60"
-              style={{
-                borderRadius: '50%',
-                transform: `translateX(${i % 2 === 0 ? '-10px' : '10px'}) scaleY(0.7)`
-              }}
-            />
-          ))}
+        {/* 1. LAYER 1: SEAMLESS FLOWING RIVER CURRENT & WATER RAPIDS (Moves from right to left!) */}
+        <div
+          className={`absolute inset-0 flex pointer-events-none select-none ${
+            isRunning ? 'animate-[riverFlowFast_1.6s_linear_infinite]' : 'animate-[riverFlowSlow_8s_linear_infinite]'
+          }`}
+          style={{ width: '200%' }}
+        >
+          {/* Segment A (100% width) */}
+          <div className="w-1/2 h-full relative overflow-hidden">
+            <svg className="w-full h-full opacity-45" preserveAspectRatio="none" viewBox="0 0 1200 400">
+              {/* Deep wavy river current contours */}
+              <path d="M 0 45 Q 300 75, 600 45 T 1200 45" fill="none" stroke="#BAE6FD" strokeWidth="4" />
+              <path d="M 0 105 Q 300 65, 600 105 T 1200 105" fill="none" stroke="#E0F2FE" strokeWidth="3" strokeDasharray="25 15" />
+              <path d="M 0 165 Q 300 195, 600 165 T 1200 165" fill="none" stroke="#7DD3FC" strokeWidth="3.5" />
+              <path d="M 0 225 Q 300 185, 600 225 T 1200 225" fill="none" stroke="#E0F2FE" strokeWidth="3" strokeDasharray="30 20" />
+              <path d="M 0 285 Q 300 315, 600 285 T 1200 285" fill="none" stroke="#BAE6FD" strokeWidth="4" />
+              <path d="M 0 345 Q 300 305, 600 345 T 1200 345" fill="none" stroke="#E0F2FE" strokeWidth="3" strokeDasharray="25 15" />
+
+              {/* Rushing white water foam streaks & rapids */}
+              <line x1="80" y1="70" x2="200" y2="70" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.85" />
+              <line x1="380" y1="130" x2="520" y2="130" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" opacity="0.9" />
+              <line x1="720" y1="85" x2="880" y2="85" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.8" />
+              <line x1="950" y1="150" x2="1080" y2="150" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.85" />
+
+              <line x1="160" y1="210" x2="310" y2="210" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" opacity="0.85" />
+              <line x1="560" y1="250" x2="700" y2="250" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.9" />
+              <line x1="840" y1="215" x2="990" y2="215" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.8" />
+
+              <line x1="100" y1="330" x2="240" y2="330" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.85" />
+              <line x1="420" y1="370" x2="590" y2="370" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" opacity="0.9" />
+              <line x1="780" y1="340" x2="940" y2="340" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.8" />
+            </svg>
+          </div>
+
+          {/* Segment B (100% width, identical copy for seamless infinite loop) */}
+          <div className="w-1/2 h-full relative overflow-hidden">
+            <svg className="w-full h-full opacity-45" preserveAspectRatio="none" viewBox="0 0 1200 400">
+              <path d="M 0 45 Q 300 75, 600 45 T 1200 45" fill="none" stroke="#BAE6FD" strokeWidth="4" />
+              <path d="M 0 105 Q 300 65, 600 105 T 1200 105" fill="none" stroke="#E0F2FE" strokeWidth="3" strokeDasharray="25 15" />
+              <path d="M 0 165 Q 300 195, 600 165 T 1200 165" fill="none" stroke="#7DD3FC" strokeWidth="3.5" />
+              <path d="M 0 225 Q 300 185, 600 225 T 1200 225" fill="none" stroke="#E0F2FE" strokeWidth="3" strokeDasharray="30 20" />
+              <path d="M 0 285 Q 300 315, 600 285 T 1200 285" fill="none" stroke="#BAE6FD" strokeWidth="4" />
+              <path d="M 0 345 Q 300 305, 600 345 T 1200 345" fill="none" stroke="#E0F2FE" strokeWidth="3" strokeDasharray="25 15" />
+
+              <line x1="80" y1="70" x2="200" y2="70" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.85" />
+              <line x1="380" y1="130" x2="520" y2="130" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" opacity="0.9" />
+              <line x1="720" y1="85" x2="880" y2="85" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.8" />
+              <line x1="950" y1="150" x2="1080" y2="150" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.85" />
+
+              <line x1="160" y1="210" x2="310" y2="210" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" opacity="0.85" />
+              <line x1="560" y1="250" x2="700" y2="250" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.9" />
+              <line x1="840" y1="215" x2="990" y2="215" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.8" />
+
+              <line x1="100" y1="330" x2="240" y2="330" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.85" />
+              <line x1="420" y1="370" x2="590" y2="370" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" opacity="0.9" />
+              <line x1="780" y1="340" x2="940" y2="340" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.8" />
+            </svg>
+          </div>
         </div>
 
         {/* STARTING AREA (Left Side): Checkered Start Line & Bold Lane Numbers */}
@@ -802,7 +910,9 @@ export default function CatRaceTimer() {
 
               {/* THE SWIMMING CAT ACTOR */}
               <div
-                className="absolute transition-all duration-150 ease-out z-20 flex flex-col items-center"
+                className={`absolute z-20 flex flex-col items-center ${
+                  isRunning ? 'transition-none' : 'transition-all duration-300 ease-out'
+                }`}
                 style={{
                   left: `${leftStyle}%`,
                   transform: 'translateX(-50%)'
