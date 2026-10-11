@@ -3,6 +3,10 @@
 let audioCtx = null;
 let isMuted = false;
 let lobbyInterval = null;
+let raceMusicInterval = null;
+let raceMusicStep = 0;
+let isUrgentRace = false;
+let noiseBuffer = null;
 
 function getAudioContext() {
   if (!audioCtx) {
@@ -17,6 +21,101 @@ function getAudioContext() {
   return audioCtx;
 }
 
+function getNoiseBuffer(ctx) {
+  if (!noiseBuffer) {
+    const bufferSize = ctx.sampleRate * 1.5;
+    noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+  }
+  return noiseBuffer;
+}
+
+function playDrumKick(ctx, t, volume = 0.35) {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.frequency.setValueAtTime(160, t);
+  osc.frequency.exponentialRampToValueAtTime(38, t + 0.1);
+  gain.gain.setValueAtTime(volume, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(t);
+  osc.stop(t + 0.12);
+}
+
+function playDrumSnare(ctx, t, volume = 0.22) {
+  const buffer = getNoiseBuffer(ctx);
+  const noise = ctx.createBufferSource();
+  noise.buffer = buffer;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'highpass';
+  filter.frequency.setValueAtTime(1000, t);
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(volume, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+  noise.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+  noise.start(t);
+  noise.stop(t + 0.14);
+}
+
+function playDrumHiHat(ctx, t, volume = 0.08) {
+  const buffer = getNoiseBuffer(ctx);
+  const noise = ctx.createBufferSource();
+  noise.buffer = buffer;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.setValueAtTime(7500, t);
+  filter.Q.setValueAtTime(3, t);
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(volume, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+  noise.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+  noise.start(t);
+  noise.stop(t + 0.04);
+}
+
+function playSynthBass(ctx, freq, t, dur = 0.1, volume = 0.2) {
+  const osc = ctx.createOscillator();
+  const filter = ctx.createBiquadFilter();
+  const gain = ctx.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(freq, t);
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(750, t);
+  filter.frequency.exponentialRampToValueAtTime(220, t + dur);
+  gain.gain.setValueAtTime(volume, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  osc.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(t);
+  osc.stop(t + dur);
+}
+
+function playSynthLead(ctx, freq, t, dur = 0.09, volume = 0.12) {
+  const osc = ctx.createOscillator();
+  const filter = ctx.createBiquadFilter();
+  const gain = ctx.createGain();
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(freq, t);
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(2400, t);
+  gain.gain.setValueAtTime(volume, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  osc.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(t);
+  osc.stop(t + dur);
+}
+
 export const sound = {
   getMuted() {
     return isMuted;
@@ -24,8 +123,9 @@ export const sound = {
 
   toggleMute() {
     isMuted = !isMuted;
-    if (isMuted && lobbyInterval) {
-      this.stopLobbyMusic();
+    if (isMuted) {
+      if (lobbyInterval) this.stopLobbyMusic();
+      if (raceMusicInterval) this.stopRaceMusic();
     }
     return isMuted;
   },
@@ -294,5 +394,175 @@ export const sound = {
       clearInterval(lobbyInterval);
       lobbyInterval = null;
     }
+  },
+
+  // ==========================================================================
+  // CAT MEOW VOCAL SYNTHESIZER (Physical acoustic modeling of cat cries)
+  // ==========================================================================
+  playMeow(variant = 'default') {
+    if (isMuted) return;
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const vibrato = ctx.createOscillator();
+    const vibratoGain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+    const gain = ctx.createGain();
+
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(1200, now);
+    filter.Q.setValueAtTime(2.2, now);
+
+    osc.type = 'sawtooth';
+    let baseFreq = 480;
+    if (variant === 'kitten') baseFreq = 620;
+    else if (variant === 'deep') baseFreq = 380;
+    else if (variant === 'excited') baseFreq = 540;
+
+    // Feline vocal formant contour: M - E - O - W
+    osc.frequency.setValueAtTime(baseFreq * 0.92, now);
+    osc.frequency.linearRampToValueAtTime(baseFreq * 1.75, now + 0.18);
+    osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.78, now + 0.52);
+
+    // Vocal cord vibrato (~6.5 Hz)
+    vibrato.frequency.setValueAtTime(6.5, now);
+    vibratoGain.gain.setValueAtTime(20, now);
+    vibrato.connect(osc.frequency);
+
+    // Dynamic mouth filter formant sweep
+    filter.frequency.setValueAtTime(800, now);
+    filter.frequency.linearRampToValueAtTime(1900, now + 0.18);
+    filter.frequency.linearRampToValueAtTime(650, now + 0.52);
+
+    // Volume envelope
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.28, now + 0.08);
+    gain.gain.setValueAtTime(0.28, now + 0.22);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.52);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    vibrato.start(now);
+    osc.start(now);
+    vibrato.stop(now + 0.52);
+    osc.stop(now + 0.52);
+  },
+
+  playQuickMew(variant = 'default') {
+    if (isMuted) return;
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const filter = ctx.createBiquadFilter();
+    const gain = ctx.createGain();
+
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(1400, now);
+    filter.Q.setValueAtTime(2.0, now);
+
+    osc.type = 'sawtooth';
+    const baseFreq = variant === 'kitten' ? 680 : variant === 'deep' ? 420 : 540;
+
+    // Short chirp: "Mew!" (~0.2s)
+    osc.frequency.setValueAtTime(baseFreq, now);
+    osc.frequency.linearRampToValueAtTime(baseFreq * 1.5, now + 0.07);
+    osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.88, now + 0.2);
+
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.24, now + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.2);
+  },
+
+  playVictoryMeow() {
+    if (isMuted) return;
+    this.playQuickMew('excited');
+    setTimeout(() => this.playMeow('kitten'), 180);
+    setTimeout(() => this.playMeow('default'), 460);
+  },
+
+  // ==========================================================================
+  // TOURNAMENT RACING BATTLE SOUNDTRACK (134 BPM Arcade groove & urgent mode)
+  // ==========================================================================
+  startRaceMusic({ urgent = false } = {}) {
+    if (isMuted || raceMusicInterval) return;
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    isUrgentRace = urgent;
+    raceMusicStep = 0;
+
+    const bassNotes = [
+      65.41, 65.41, 130.81, 116.54, 65.41, 77.78, 87.31, 98.00,
+      65.41, 65.41, 103.83, 116.54, 65.41, 77.78, 87.31, 98.00
+    ];
+
+    const leadNotes = [
+      523.25, 659.25, 783.99, 1046.50, 783.99, 659.25, 587.33, 523.25,
+      659.25, 783.99, 880.00, 1046.50, 1174.66, 1046.50, 880.00, 783.99
+    ];
+
+    const playStep = () => {
+      if (isMuted) return;
+      const t = ctx.currentTime;
+      const step = raceMusicStep % 16;
+      raceMusicStep++;
+
+      // 1. Kick on beats 0, 4, 8, 12
+      if (step % 4 === 0) {
+        playDrumKick(ctx, t, 0.32);
+      }
+
+      // 2. Snare on beats 4, 12
+      if (step === 4 || step === 12) {
+        playDrumSnare(ctx, t, 0.22);
+      }
+
+      // 3. Hi-Hat on 16th notes
+      playDrumHiHat(ctx, t, step % 2 === 0 ? 0.08 : 0.04);
+
+      // 4. Driving Bassline
+      const bassFreq = bassNotes[step];
+      playSynthBass(ctx, bassFreq, t, 0.1, 0.18);
+
+      // 5. Arcade Lead Melody Arpeggio
+      const leadFreq = leadNotes[step] * (isUrgentRace ? 1.122 : 1.0);
+      playSynthLead(ctx, leadFreq, t, 0.085, isUrgentRace ? 0.15 : 0.11);
+    };
+
+    const stepInterval = isUrgentRace ? 95 : 112;
+    playStep();
+    raceMusicInterval = setInterval(playStep, stepInterval);
+  },
+
+  setRaceMusicUrgent(urgent) {
+    if (isUrgentRace === urgent) return;
+    isUrgentRace = urgent;
+    if (raceMusicInterval) {
+      clearInterval(raceMusicInterval);
+      raceMusicInterval = null;
+      this.startRaceMusic({ urgent: true });
+    }
+  },
+
+  stopRaceMusic() {
+    if (raceMusicInterval) {
+      clearInterval(raceMusicInterval);
+      raceMusicInterval = null;
+    }
+    raceMusicStep = 0;
+    isUrgentRace = false;
   }
 };

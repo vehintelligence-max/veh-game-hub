@@ -134,8 +134,17 @@ const PRESET_TIMES = [
 // SVG RUNNING & SWIMMING CAT (DUCK RACE STYLE - ACTIVE 4-PAW PADDLE & BODY GALLOP)
 // ============================================================================
 function SwimmingCat({ racer, isRunning, isWinner, isLeader }) {
+  const handleCatClick = () => {
+    const variants = { cat_1: 'excited', cat_2: 'kitten', cat_3: 'default', cat_4: 'deep' };
+    sound.playMeow(variants[racer.id] || 'default');
+  };
+
   return (
-    <div className="relative flex items-center justify-center select-none cursor-pointer group">
+    <div
+      onClick={handleCatClick}
+      className="relative flex items-center justify-center select-none cursor-pointer group active:scale-95 transition-transform"
+      title={`Nhấn vào ${racer.name} để nghe tiếng mèo kêu!`}
+    >
       {/* 1. Dynamic Water Ripples Under Belly */}
       <svg
         viewBox="0 0 110 30"
@@ -448,6 +457,7 @@ export default function CatRaceTimer() {
     elapsedOffsetRef.current = 0;
     raceStartTimeRef.current = null;
     lastSecondTickedRef.current = newTotal;
+    sound.stopRaceMusic();
 
     // Generate distinct racer personalities for fluid overtakes & sprints
     const initPos = {};
@@ -478,6 +488,7 @@ export default function CatRaceTimer() {
     if (isRunning) {
       // PAUSE
       sound.playClick();
+      sound.stopRaceMusic();
       setIsRunning(false);
       if (animFrameRef.current) {
         cancelAnimationFrame(animFrameRef.current);
@@ -490,11 +501,20 @@ export default function CatRaceTimer() {
       // START / RESUME
       if (soundEnabled) {
         sound.playWhistle();
+        setTimeout(() => sound.playMeow('excited'), 280);
+        sound.startRaceMusic({ urgent: remainingSeconds <= 6 });
       }
       raceStartTimeRef.current = performance.now() - (elapsedOffsetRef.current * 1000);
       setIsRunning(true);
     }
   };
+
+  // Unmount cleanup
+  useEffect(() => {
+    return () => {
+      sound.stopRaceMusic();
+    };
+  }, []);
 
   // Smooth 60fps Animation & Physics Loop (Silky fluid movement, no jerky jumps)
   useEffect(() => {
@@ -504,6 +524,7 @@ export default function CatRaceTimer() {
     }
 
     let isSubscribed = true;
+    let lastMeowTime = 0;
 
     const tick = () => {
       if (!isSubscribed) return;
@@ -520,10 +541,18 @@ export default function CatRaceTimer() {
         lastSecondTickedRef.current = remainingSec;
         setRemainingSeconds(remainingSec);
         if (soundEnabled && remainingSec > 0) {
-          if (remainingSec <= 5) {
+          if (remainingSec <= 6) {
+            sound.setRaceMusicUrgent(true);
             sound.playUrgentTick();
           } else {
             sound.playSplash();
+          }
+
+          // Random playful cat meows during the heat of competition (every 3-5 seconds)
+          if (remainingSec > 4 && now - lastMeowTime > 3200 && Math.random() < 0.45) {
+            lastMeowTime = now;
+            const variants = ['kitten', 'excited', 'default', 'deep'];
+            sound.playQuickMew(variants[Math.floor(Math.random() * variants.length)]);
           }
         }
       }
@@ -587,6 +616,7 @@ export default function CatRaceTimer() {
   // Race Finish Ceremony
   const handleFinishRace = (finalSnapshotPositions = positions) => {
     if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    sound.stopRaceMusic();
     setIsRunning(false);
     setIsFinished(true);
     setRemainingSeconds(0);
@@ -613,6 +643,7 @@ export default function CatRaceTimer() {
     if (alarmBellEnabled) {
       sound.playAlarmBell();
     }
+    sound.playVictoryMeow();
     sound.playFanfare();
 
     confetti({
@@ -702,15 +733,23 @@ export default function CatRaceTimer() {
               <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
-            {/* 2. Sound Effects Toggle */}
+            {/* 2. Sound & Race Music Toggle */}
             <button
               type="button"
               onClick={() => {
                 sound.playClick();
-                setSoundEnabled(!soundEnabled);
+                setSoundEnabled((prev) => {
+                  const next = !prev;
+                  if (!next) {
+                    sound.stopRaceMusic();
+                  } else if (isRunning) {
+                    sound.startRaceMusic({ urgent: remainingSeconds <= 6 });
+                  }
+                  return next;
+                });
               }}
               className="p-1.5 sm:p-2 bg-[#2D3748] hover:bg-[#4A5568] text-white rounded-lg transition"
-              title={soundEnabled ? 'Tắt âm thanh bơi bì bõm' : 'Bật âm thanh bơi bì bõm'}
+              title={soundEnabled ? 'Tắt nhạc thi đấu & tiếng mèo' : 'Bật nhạc thi đấu & tiếng mèo'}
             >
               {soundEnabled ? (
                 <Music className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-300" />
