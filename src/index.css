@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .kahoot-btn-shadow-red {
+    box-shadow: 0 6px 0 #9e1028;
+  }
+  .kahoot-btn-shadow-red:active {
+    box-shadow: 0 1px 0 #9e1028;
+    transform: translateY(5px);
+  }
+
+  .kahoot-btn-shadow-blue {
+    box-shadow: 0 6px 0 #0d468b;
+  }
+  .kahoot-btn-shadow-blue:active {
+    box-shadow: 0 1px 0 #0d468b;
+    transform: translateY(5px);
+  }
+
+  .kahoot-btn-shadow-yellow {
+    box-shadow: 0 6px 0 #b37300;
+  }
+  .kahoot-btn-shadow-yellow:active {
+    box-shadow: 0 1px 0 #b37300;
+    transform: translateY(5px);
+  }
+
+  .kahoot-btn-shadow-green {
+    box-shadow: 0 6px 0 #185a07;
+  }
+  .kahoot-btn-shadow-green:active {
+    box-shadow: 0 1px 0 #185a07;
+    transform: translateY(5px);
+  }
+
+  .kahoot-btn-shadow-purple {
+    box-shadow: 0 6px 0 #280a56;
+  }
+  .kahoot-btn-shadow-purple:active {
+    box-shadow: 0 1px 0 #280a56;
+    transform: translateY(5px);
+  }
+
+  .kahoot-btn-shadow-white {
+    box-shadow: 0 6px 0 #cbd5e1;
+  }
+  .kahoot-btn-shadow-white:active {
+    box-shadow: 0 1px 0 #cbd5e1;
+    transform: translateY(5px);
+  }
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+/* Cat Race Animation Keyframes */
+@keyframes catTail {
+  0% { transform: rotate(-15deg); }
+  100% { transform: rotate(25deg); }
+}
+
+@keyframes catPawBack {
+  0% { transform: rotate(-25deg); }
+  100% { transform: rotate(25deg); }
+}
+
+@keyframes catPawFront {
+  0% { transform: rotate(30deg); }
+  100% { transform: rotate(-30deg); }
+}
+
+@keyframes hangSwing {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(6deg); }
+  75% { transform: rotate(-6deg); }
+  100% { transform: rotate(0deg); }
+}
+
